@@ -140,6 +140,12 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
+        .result-type {
+            font-size: 0.7rem;
+            color: var(--primary-light);
+            margin-top: 0.25rem;
+        }
+
         /* ===== LAYOUT PRINCIPAL ===== */
         .main-container {
             display: flex;
@@ -424,18 +430,6 @@
             backdrop-filter: blur(10px);
         }
 
-        .btn-location {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--primary-light);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-location:hover {
-            background: rgba(16, 185, 129, 0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px -3px rgba(16, 185, 129, 0.2);
-        }
-
         .btn-map {
             background: rgba(59, 130, 246, 0.1);
             color: var(--secondary);
@@ -702,6 +696,143 @@
         .report-pendiente { background-color: #f59e0b; }
         .report-en-proceso { background-color: #3b82f6; }
         .report-resuelto { background-color: #10b981; }
+
+        /* ===== MODAL PARA USO DE SUELO ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-container {
+            background: rgba(31, 41, 55, 0.95);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: var(--primary);
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(16, 185, 129, 0.3);
+        }
+
+        /* ===== INFORMACIÓN DE USO DE SUELO ===== */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--primary-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--light);
+        }
+
+        .info-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .info-section-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -713,7 +844,7 @@
                 <h1>Geoportal Participativo</h1>
             </div>
             <div class="search-container">
-                <input type="text" id="search-input" placeholder="Buscar localidad..." class="search-input">
+                <input type="text" id="search-input" placeholder="Buscar localidad o colonia..." class="search-input">
                 <div id="search-results" class="search-results"></div>
             </div>
         </div>
@@ -788,13 +919,6 @@
                                 </div>
                                 
                                 <div class="coords-actions">
-                                    <button type="button" id="get-current-location" class="btn btn-location">
-                                        <i class="fas fa-location-arrow"></i>
-                                        Mi Ubicación
-                                    </button>
-                                </div>
-                                
-                                <div class="coords-actions">
                                     <button type="button" id="pick-on-map" class="btn btn-map">
                                         <i class="fas fa-map-pin"></i>
                                         Seleccionar en Mapa
@@ -860,11 +984,104 @@
         </main>
     </div>
 
+    <!-- MODAL PARA USO DE SUELO - SOLO INFORMACIÓN -->
+    <div id="uso-suelo-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <i class="fas fa-vector-square"></i>
+                    Información de Uso de Suelo
+                </h2>
+                <button class="modal-close" id="close-modal">&times;</button>
+            </div>
+            
+            <!-- Contenido de información -->
+            <div class="modal-body">
+                <div class="info-section">
+                    <h3 class="info-section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Información General
+                    </h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Uso Actual</div>
+                            <div class="info-value" id="info-uso-actual">No disponible</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Clasificación</div>
+                            <div class="info-value" id="info-clasificacion">No disponible</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Área</div>
+                            <div class="info-value" id="info-area">No disponible</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Descripción</div>
+                            <div class="info-value" id="info-descripcion">No disponible</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-section">
+                    <h3 class="info-section-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Ubicación
+                    </h3>
+                    <div class="coords-display">
+                        <i class="fas fa-crosshairs"></i>
+                        <span id="info-coords-centroide">No calculado</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn-modal btn-cancel" id="close-info">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // ===== CONFIGURACIÓN DE SUPABASE =====
         const SUPABASE_URL = 'https://zrjsvoorlsresywgivof.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyanN2b29ybHNyZXN5d2dpdm9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2MTU3NDgsImV4cCI6MjA3NjE5MTc0OH0.rYeKz_6aDvlatFgGYfe6l-Ec757pFdSlsOmFgr-mLmM';
+
+        // ===== CLASIFICACIONES ÚNICAS DE USO DE SUELO =====
+        const clasificacionesUsoSuelo = [
+            "Área Natural Protegida",
+            "Área Verde",
+            "Agroindustria",
+            "Centro Histórico Perímetro \"A\"",
+            "Centro Histórico Perímetro \"B\"",
+            "Comercios de Intensidad Alta",
+            "Comercios de Intensidad Baja", 
+            "Comercios de Intensidad Media",
+            "Equipamiento Urbano",
+            "Habitacional de Densidad Alta",
+            "Habitacional de Densidad Baja",
+            "Habitacional de Densidad Media",
+            "Habitacional de Densidad Media Mixta Comercio, Servicios e Industria Condicionados",
+            "Habitacional de Densidad Muy Baja",
+            "Habitacional Rural",
+            "Industria de Intensidad Alta",
+            "Industria de Intensidad Baja",
+            "Industria de Intensidad Media", 
+            "Infraestructura",
+            "Servicios Carreteros",
+            "Servicios de Intensidad Alta",
+            "Servicios de Intensidad Baja",
+            "Servicios de Intensidad Media",
+            "Usos Especiales",
+            "Zona Agrícultura de Riego",
+            "Zona Agricola de Temporal",
+            "Zona Agropecuaria Mixta",
+            "Zona con Actividades Extractivas",
+            "Zona con Pasivo Ambiental", 
+            "Zona de Conservación Ecológica",
+            "Zona de Consolidación Urbana",
+            "Zona de Reserva para Crecimiento",
+            "Zona de Restauración Ecológica"
+        ];
 
         // ===== VARIABLES GLOBALES =====
         let map;
@@ -874,8 +1091,10 @@
         let locationMarker = null;
         let isPickingLocation = false;
         let localidadesData = [];
+        let coloniasData = [];
         let reportesLayer = null;
         let reportesCargados = [];
+        let selectedPolygonData = null;
 
         // ===== INICIALIZACIÓN DE LA APLICACIÓN =====
         document.addEventListener('DOMContentLoaded', function() {
@@ -883,9 +1102,197 @@
             inicializarBasemaps();
             cargarCapasDisponibles();
             inicializarEventos();
-            cargarLocalidades();
-            cargarReportes(); // Cargar reportes al iniciar
+            cargarDatosBusqueda();
+            cargarReportes();
         });
+
+        // ===== FUNCIÓN: CARGAR DATOS PARA BÚSQUEDA (LOCALIDADES Y COLONIAS) =====
+        async function cargarDatosBusqueda() {
+            await Promise.all([
+                cargarLocalidades(),
+                cargarColonias()
+            ]);
+        }
+
+        // ===== FUNCIÓN: CARGAR LOCALIDADES PARA BÚSQUEDA =====
+        async function cargarLocalidades() {
+            try {
+                const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/Localidades%201?select=*,geom`, {
+                    headers: { 
+                        'apikey': SUPABASE_KEY, 
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!respuesta.ok) throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`);
+                
+                const datos = await respuesta.json();
+                localidadesData = datos.map(item => ({
+                    ...item,
+                    tipo: 'localidad'
+                }));
+                
+                console.log(`✅ ${localidadesData.length} localidades cargadas para búsqueda`);
+                
+            } catch (error) {
+                console.error('Error al cargar localidades:', error);
+            }
+        }
+
+        // ===== FUNCIÓN: CARGAR COLONIAS PARA BÚSQUEDA =====
+        async function cargarColonias() {
+            try {
+                const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/Colonias_SFR?select=*,geom`, {
+                    headers: { 
+                        'apikey': SUPABASE_KEY, 
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!respuesta.ok) throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`);
+                
+                const datos = await respuesta.json();
+                coloniasData = datos.map(item => ({
+                    ...item,
+                    tipo: 'colonia'
+                }));
+                
+                console.log(`✅ ${coloniasData.length} colonias cargadas para búsqueda`);
+                
+            } catch (error) {
+                console.error('Error al cargar colonias:', error);
+            }
+        }
+
+        // ===== FUNCIÓN: BUSCAR LOCALIDADES Y COLONIAS =====
+        function buscarLocalidades(termino) {
+            const resultadosContainer = document.getElementById('search-results');
+            resultadosContainer.innerHTML = '';
+            
+            if (!termino || termino.length < 2) {
+                resultadosContainer.style.display = 'none';
+                return;
+            }
+            
+            const terminoLower = termino.toLowerCase();
+            
+            // Buscar en localidades
+            const resultadosLocalidades = localidadesData.filter(item => {
+                return item.nom_loc && item.nom_loc.toLowerCase().includes(terminoLower);
+            }).slice(0, 5);
+            
+            // Buscar en colonias
+            const resultadosColonias = coloniasData.filter(item => {
+                return item.nomcolonia && item.nomcolonia.toLowerCase().includes(terminoLower);
+            }).slice(0, 5);
+            
+            const resultados = [...resultadosLocalidades, ...resultadosColonias].slice(0, 10);
+            
+            if (resultados.length === 0) {
+                resultadosContainer.style.display = 'none';
+                return;
+            }
+            
+            resultados.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'search-result-item';
+                
+                let nombre = '';
+                let tipoTexto = '';
+                
+                if (item.tipo === 'localidad') {
+                    nombre = item.nom_loc;
+                    tipoTexto = 'Localidad';
+                } else if (item.tipo === 'colonia') {
+                    nombre = item.nomcolonia;
+                    tipoTexto = 'Colonia';
+                }
+                
+                itemElement.innerHTML = `
+                    <div>${nombre}</div>
+                    <div class="result-type">${tipoTexto}</div>
+                `;
+                
+                itemElement.onclick = () => {
+                    seleccionarResultadoBusqueda(item);
+                    resultadosContainer.style.display = 'none';
+                    document.getElementById('search-input').value = nombre;
+                };
+                
+                resultadosContainer.appendChild(itemElement);
+            });
+            
+            resultadosContainer.style.display = 'block';
+        }
+
+        // ===== FUNCIÓN: SELECCIONAR RESULTADO DE BÚSQUEDA =====
+        function seleccionarResultadoBusqueda(item) {
+            const geometria = postgisToGeoJSON(item.geom);
+            
+            if (geometria) {
+                let lat, lng;
+                
+                // Manejar diferentes tipos de geometría
+                if (geometria.type === 'Point' && geometria.coordinates) {
+                    [lng, lat] = geometria.coordinates;
+                } else if (geometria.type === 'Polygon' || geometria.type === 'MultiPolygon') {
+                    // Para polígonos, calcular el centroide
+                    const bounds = L.geoJSON(geometria).getBounds();
+                    const centro = bounds.getCenter();
+                    lat = centro.lat;
+                    lng = centro.lng;
+                } else {
+                    alert('No se pudo obtener la ubicación del elemento seleccionado');
+                    return;
+                }
+                
+                map.setView([lat, lng], 14);
+                
+                if (locationMarker) {
+                    map.removeLayer(locationMarker);
+                }
+                
+                let iconColor = '#3b82f6';
+                let tipoTexto = '';
+                
+                if (item.tipo === 'localidad') {
+                    iconColor = '#3b82f6';
+                    tipoTexto = 'Localidad';
+                } else if (item.tipo === 'colonia') {
+                    iconColor = '#10b981';
+                    tipoTexto = 'Colonia';
+                }
+                
+                locationMarker = L.marker([lat, lng], {
+                    icon: L.divIcon({
+                        className: 'location-marker',
+                        html: `<i class="fas fa-map-marker-alt" style="color: ${iconColor}; font-size: 24px;"></i>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 24]
+                    })
+                }).addTo(map);
+                
+                let contenidoPopup = `<strong>${tipoTexto}: ${item.nom_loc || item.nomcolonia}</strong>`;
+                
+                if (item.tipo === 'localidad') {
+                    if (item.nom_mun) contenidoPopup += `<br>Municipio: ${item.nom_mun}`;
+                    if (item.nom_ent) contenidoPopup += `<br>Entidad: ${item.nom_ent}`;
+                    if (item.pobtot) contenidoPopup += `<br>Población: ${item.pobtot}`;
+                } else if (item.tipo === 'colonia') {
+                    // Agregar más información de colonias si está disponible
+                    if (item.area) contenidoPopup += `<br>Área: ${item.area}`;
+                }
+                
+                locationMarker.bindPopup(contenidoPopup).openPopup();
+                
+                establecerUbicacion(lat, lng);
+                
+            } else {
+                alert('No se pudo obtener la ubicación del elemento seleccionado');
+            }
+        }
 
         // ===== FUNCIÓN: INICIALIZAR MAPA =====
         function inicializarMapa() {
@@ -914,7 +1321,6 @@
                 const datos = await respuesta.json();
                 reportesCargados = datos;
                 
-                // Crear o actualizar capa de reportes
                 if (reportesLayer) {
                     map.removeLayer(reportesLayer);
                 }
@@ -922,12 +1328,10 @@
                 const features = datos.map(reporte => {
                     let geometria = null;
                     
-                    // Intentar usar la geometría directamente
                     if (reporte.geom) {
                         geometria = postgisToGeoJSON(reporte.geom);
                     }
                     
-                    // Si no hay geometría, crear desde lat/lng
                     if (!geometria && reporte.lat && reporte.lng) {
                         geometria = {
                             type: 'Point',
@@ -952,7 +1356,6 @@
                 
                 reportesLayer = L.geoJSON(geoJSONData, {
                     pointToLayer: function(feature, latlng) {
-                        // Determinar color según estado
                         let estado = feature.properties.estado || 'pendiente';
                         let colorClass = 'report-pendiente';
                         let icono = 'fas fa-exclamation-circle';
@@ -1003,7 +1406,6 @@
             const tipo = document.getElementById('tipo').value;
             const comentarios = document.getElementById('comentarios').value.trim();
             
-            // Validar campos obligatorios
             if (!nombre || !tipo || !comentarios) {
                 alert('Por favor completa todos los campos obligatorios');
                 return;
@@ -1021,7 +1423,6 @@
                     comentarios: comentarios,
                     lat: selectedLocation.lat,
                     lng: selectedLocation.lng
-                    // La geometría se genera automáticamente con el trigger
                 };
                 
                 const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/reportes_ciudadanos`, {
@@ -1052,114 +1453,17 @@
                 document.getElementById('lat-input').value = '';
                 document.getElementById('lng-input').value = '';
                 
-                // Remover marcador temporal
                 if (locationMarker) {
                     map.removeLayer(locationMarker);
                     locationMarker = null;
                 }
                 
                 selectedLocation = null;
-                
-                // Recargar reportes para mostrar el nuevo
                 cargarReportes();
                 
             } catch (error) {
                 console.error('Error al enviar reporte:', error);
                 alert('❌ Error al enviar el reporte: ' + error.message);
-            }
-        }
-
-        // ===== FUNCIÓN: CARGAR LOCALIDADES PARA BÚSQUEDA =====
-        async function cargarLocalidades() {
-            try {
-                const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/Localidades%201?select=*,geom`, {
-                    headers: { 
-                        'apikey': SUPABASE_KEY, 
-                        'Authorization': `Bearer ${SUPABASE_KEY}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!respuesta.ok) throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`);
-                
-                const datos = await respuesta.json();
-                localidadesData = datos;
-                
-                console.log(`✅ ${localidadesData.length} localidades cargadas para búsqueda`);
-                
-            } catch (error) {
-                console.error('Error al cargar localidades:', error);
-            }
-        }
-
-        // ===== FUNCIÓN: BUSCAR LOCALIDADES =====
-        function buscarLocalidades(termino) {
-            const resultadosContainer = document.getElementById('search-results');
-            resultadosContainer.innerHTML = '';
-            
-            if (!termino || termino.length < 2) {
-                resultadosContainer.style.display = 'none';
-                return;
-            }
-            
-            const terminoLower = termino.toLowerCase();
-            const resultados = localidadesData.filter(localidad => {
-                return localidad.nom_loc && localidad.nom_loc.toLowerCase().includes(terminoLower);
-            }).slice(0, 10);
-            
-            if (resultados.length === 0) {
-                resultadosContainer.style.display = 'none';
-                return;
-            }
-            
-            resultados.forEach(localidad => {
-                const item = document.createElement('div');
-                item.className = 'search-result-item';
-                item.textContent = localidad.nom_loc;
-                item.onclick = () => {
-                    seleccionarLocalidad(localidad);
-                    resultadosContainer.style.display = 'none';
-                    document.getElementById('search-input').value = localidad.nom_loc;
-                };
-                resultadosContainer.appendChild(item);
-            });
-            
-            resultadosContainer.style.display = 'block';
-        }
-
-        // ===== FUNCIÓN: SELECCIONAR LOCALIDAD =====
-        function seleccionarLocalidad(localidad) {
-            const geometria = postgisToGeoJSON(localidad.geom);
-            
-            if (geometria && geometria.type === 'Point' && geometria.coordinates) {
-                const [lng, lat] = geometria.coordinates;
-                
-                map.setView([lat, lng], 12);
-                
-                if (locationMarker) {
-                    map.removeLayer(locationMarker);
-                }
-                
-                locationMarker = L.marker([lat, lng], {
-                    icon: L.divIcon({
-                        className: 'location-marker',
-                        html: '<i class="fas fa-map-marker-alt" style="color: #3b82f6; font-size: 24px;"></i>',
-                        iconSize: [24, 24],
-                        iconAnchor: [12, 24]
-                    })
-                }).addTo(map);
-                
-                let contenidoPopup = `<strong>${localidad.nom_loc}</strong>`;
-                if (localidad.nom_mun) contenidoPopup += `<br>Municipio: ${localidad.nom_mun}`;
-                if (localidad.nom_ent) contenidoPopup += `<br>Entidad: ${localidad.nom_ent}`;
-                if (localidad.pobtot) contenidoPopup += `<br>Población: ${localidad.pobtot}`;
-                
-                locationMarker.bindPopup(contenidoPopup).openPopup();
-                
-                establecerUbicacion(lat, lng);
-                
-            } else {
-                alert('No se pudo obtener la ubicación de la localidad seleccionada');
             }
         }
 
@@ -1171,12 +1475,10 @@
             document.getElementById('lat-input').value = lat;
             document.getElementById('lng-input').value = lng;
             
-            // MEJORA: Limpiar marcador anterior si existe
             if (locationMarker) {
                 map.removeLayer(locationMarker);
             }
             
-            // MEJORA: Crear un marcador más distintivo para la ubicación seleccionada
             locationMarker = L.marker([lat, lng], {
                 icon: L.divIcon({
                     className: 'selected-location-marker',
@@ -1184,10 +1486,9 @@
                     iconSize: [32, 32],
                     iconAnchor: [16, 32]
                 }),
-                zIndexOffset: 1000 // Asegurar que esté por encima de otras capas
+                zIndexOffset: 1000
             }).addTo(map);
             
-            // MEJORA: Abrir popup automáticamente
             locationMarker.bindPopup(`
                 <div style="text-align: center;">
                     <strong>Ubicación seleccionada</strong><br>
@@ -1196,7 +1497,6 @@
                 </div>
             `).openPopup();
             
-            // MEJORA: Centrar el mapa en la ubicación seleccionada con un zoom adecuado
             map.setView([lat, lng], Math.max(map.getZoom(), 16));
         }
 
@@ -1267,7 +1567,7 @@
             }
         }
 
-        // ===== FUNCIONES RESTANTES =====
+        // ===== FUNCIÓN: INICIALIZAR BASEMAPS =====
         function inicializarBasemaps() {
             const basemaps = [
                 { id: 'osm', name: 'OpenStreetMap', icon: 'fas fa-globe-americas', active: true },
@@ -1291,6 +1591,7 @@
             });
         }
 
+        // ===== FUNCIÓN: CAMBIAR BASEMAP =====
         function cambiarBasemap(basemapId) {
             map.eachLayer(layer => {
                 if (layer instanceof L.TileLayer) {
@@ -1338,6 +1639,7 @@
             }
         }
 
+        // ===== FUNCIÓN: CARGAR CAPAS DISPONIBLES =====
         async function cargarCapasDisponibles() {
             const status = document.getElementById('status');
             const layersContainer = document.getElementById('layers');
@@ -1349,8 +1651,9 @@
                 const tablasEspaciales = [
                     'Localidades 1', 
                     'San Francisco_Mun', 
-                    'Zonificación Primaria_', 
-                    'Zonificación Secundaria'
+                    'Usos de Suelo ',
+                    'Zonificación Primaria_',
+                    'Colonias_SFR'
                 ];
                 const capasValidas = [];
                 
@@ -1366,6 +1669,9 @@
                         
                         if (r.ok) {
                             capasValidas.push(tabla);
+                            console.log(`✅ Capa accesible: ${tabla}`);
+                        } else {
+                            console.log(`❌ Capa no accesible: ${tabla}`);
                         }
                     } catch (e) {
                         console.error(`Error al acceder a ${tabla}:`, e);
@@ -1411,17 +1717,18 @@
             }
         }
 
+        // ===== FUNCIÓN: OBTENER TIPO DE GEOMETRÍA =====
         function obtenerTipoGeometria(nombreTabla) {
-            if (nombreTabla.includes('Localidades')) {
+            if (nombreTabla.includes('Localidades') || nombreTabla.includes('reportes') || nombreTabla.includes('propuestas')) {
                 return 'Punto';
-            } else if (nombreTabla.includes('Zonificación')) {
-                return 'Polígono';
-            } else if (nombreTabla.includes('San Francisco')) {
+            } else if (nombreTabla.includes('Zonificación') || nombreTabla.includes('San Francisco') || 
+                       nombreTabla.includes('Usos de Suelo') || nombreTabla.includes('Colonias_SFR')) {
                 return 'Polígono';
             }
             return 'Desconocido';
         }
 
+        // ===== FUNCIÓN: OBTENER COLOR POR TIPO =====
         function obtenerColorPorTipo(tipo) {
             switch(tipo) {
                 case 'Polígono': return '#3498db';
@@ -1430,6 +1737,7 @@
             }
         }
 
+        // ===== FUNCIÓN: OBTENER ICONO POR TIPO =====
         function obtenerIconoPorTipo(tipo) {
             switch(tipo) {
                 case 'Polígono': return 'fas fa-vector-square';
@@ -1438,13 +1746,27 @@
             }
         }
 
+        // ===== FUNCIÓN: FORMATEAR NOMBRE =====
         function formatearNombre(nombre) {
+            const nombresEspeciales = {
+                'Localidades 1': 'Localidades',
+                'San Francisco_Mun': 'Municipio San Francisco',
+                'Usos de Suelo ': 'Usos de Suelo',
+                'Zonificación Primaria_': 'Zonificación Primaria',
+                'Colonias_SFR': 'Colonias San Francisco'
+            };
+            
+            if (nombresEspeciales[nombre]) {
+                return nombresEspeciales[nombre];
+            }
+            
             return nombre
                 .replace(/_/g, ' ')
                 .replace(/\s+\d+$/, '')
                 .replace(/^\w/, c => c.toUpperCase());
         }
 
+        // ===== FUNCIÓN MEJORADA: TOGGLE CAPA (CON COLOR_HEX) =====
         async function toggleCapa(nombreCapa) {
             const layerItems = document.querySelectorAll('.layer-item');
             let layerItem, toggle;
@@ -1514,9 +1836,24 @@
                 };
                 
                 const tipoGeometria = obtenerTipoGeometria(nombreCapa);
-                const color = obtenerColorPorTipo(tipoGeometria);
+                const colorBase = obtenerColorPorTipo(tipoGeometria);
+                
+                // ===== ESTILO MEJORADO QUE USA COLOR_HEX SI EXISTE =====
+                const style = function(feature) {
+                    // Usar color_hex si existe, sino usar color base por tipo
+                    const color = feature.properties.color_hex || colorBase;
+                    return {
+                        color: color,
+                        weight: 2,
+                        opacity: 0.8,
+                        fillColor: color,
+                        fillOpacity: 0.4
+                    };
+                };
                 
                 const pointToLayer = function(feature, latlng) {
+                    // Usar color_hex si existe, sino usar color base por tipo
+                    const color = feature.properties.color_hex || colorBase;
                     return L.circleMarker(latlng, {
                         radius: 6,
                         fillColor: color,
@@ -1527,41 +1864,41 @@
                     });
                 };
                 
-                const style = function(feature) {
-                    return {
-                        color: color,
-                        weight: 2,
-                        opacity: 0.8,
-                        fillColor: color,
-                        fillOpacity: 0.4
-                    };
-                };
-                
                 const capa = L.geoJSON(geoJSONData, {
                     pointToLayer: tipoGeometria === 'Punto' ? pointToLayer : undefined,
                     style: tipoGeometria !== 'Punto' ? style : undefined,
                     onEachFeature: function(feature, layer) {
                         let contenidoPopup = `<strong>${formatearNombre(nombreCapa)}</strong><br><hr>`;
                         
-                        const propiedadesImportantes = ['nom_loc', 'nom_ent', 'nom_mun', 'pobtot', 'descripcio', 'nomgeo'];
+                        const propiedadesEspecificas = {
+                            'Localidades 1': ['nom_loc', 'nom_ent', 'nom_mun', 'pobtot'],
+                            'San Francisco_Mun': ['nomgeo', 'nom_ent'],
+                            'Usos de Suelo ': ['clas_bás', 'desc_cve', 'area', 'color_hex'],
+                            'Zonificación Primaria_': ['descripcio', 'codigo', 'área_ha'],
+                            'Colonias_SFR': ['nomcolonia']
+                        };
                         
-                        propiedadesImportantes.forEach(prop => {
+                        const propiedades = propiedadesEspecificas[nombreCapa] || Object.keys(feature.properties).slice(0, 5);
+                        
+                        propiedades.forEach(prop => {
                             if (feature.properties[prop] !== null && 
                                 feature.properties[prop] !== undefined) {
                                 contenidoPopup += `<strong>${prop}:</strong> ${feature.properties[prop]}<br>`;
                             }
                         });
                         
-                        Object.keys(feature.properties).forEach(prop => {
-                            if (feature.properties[prop] !== null && 
-                                feature.properties[prop] !== undefined &&
-                                !propiedadesImportantes.includes(prop) &&
-                                prop !== 'geom') {
-                                contenidoPopup += `<strong>${prop}:</strong> ${feature.properties[prop]}<br>`;
-                            }
-                        });
-                        
                         layer.bindPopup(contenidoPopup);
+                        
+                        // ===== AGREGAR EVENTO DE CLIC PARA USOS DE SUELO =====
+                        if (nombreCapa === 'Usos de Suelo ') {
+                            layer.on('click', function(e) {
+                                e.originalEvent.preventDefault();
+                                e.originalEvent.stopPropagation();
+                                
+                                // Abrir modal con pestañas para uso de suelo
+                                openUsoSueloModal(feature.properties, feature);
+                            });
+                        }
                     }
                 });
                 
@@ -1582,6 +1919,7 @@
             }
         }
 
+        // ===== FUNCIÓN MEJORADA: ACTUALIZAR LEYENDA (CON CLASIFICACIÓN desc_cve Y SCROLL) =====
         function actualizarLeyenda() {
             const leyenda = document.getElementById('legend');
             const leyendaContent = document.getElementById('legend-content');
@@ -1593,8 +1931,46 @@
             }
             
             let contenidoLeyenda = '';
+            let totalItems = 0;
             
             capasActivas.forEach(capa => {
+                // Para la capa "Usos de Suelo", mostrar las clasificaciones de desc_cve con sus colores
+                if (capa === 'Usos de Suelo ') {
+                    const geojson = capasCargadas[capa]?.toGeoJSON();
+                    if (geojson) {
+                        // Obtener clasificaciones únicas de la capa con sus colores
+                        const clasificaciones = {};
+                        
+                        geojson.features.forEach(feature => {
+                            const clasificacion = feature.properties.desc_cve;
+                            const color = feature.properties.color_hex || obtenerColorPorTipo('Polígono');
+                            
+                            if (clasificacion && !clasificaciones[clasificacion]) {
+                                clasificaciones[clasificacion] = color;
+                            }
+                        });
+                        
+                        // Ordenar las clasificaciones alfabéticamente
+                        const clasificacionesOrdenadas = Object.keys(clasificaciones).sort();
+                        totalItems = clasificacionesOrdenadas.length;
+                        
+                        if (clasificacionesOrdenadas.length > 0) {
+                            contenidoLeyenda += `<div class="legend-title">${formatearNombre(capa)}</div>`;
+                            clasificacionesOrdenadas.forEach(clasificacion => {
+                                const color = clasificaciones[clasificacion];
+                                contenidoLeyenda += `
+                                    <div class="legend-item">
+                                        <div class="legend-color" style="background-color:${color}"></div>
+                                        <div class="legend-text">${clasificacion}</div>
+                                    </div>
+                                `;
+                            });
+                            return; // Salir del bucle para esta capa
+                        }
+                    }
+                }
+                
+                // Para otras capas, usar el color por defecto
                 const tipo = obtenerTipoGeometria(capa);
                 const color = obtenerColorPorTipo(tipo);
                 contenidoLeyenda += `
@@ -1603,12 +1979,24 @@
                         <div class="legend-text">${formatearNombre(capa)}</div>
                     </div>
                 `;
+                totalItems++;
             });
             
             leyendaContent.innerHTML = contenidoLeyenda;
+            
+            // Activar scroll solo si hay muchos elementos
+            if (totalItems > 10) {
+                leyendaContent.style.overflowY = 'auto';
+                leyendaContent.style.maxHeight = '350px';
+            } else {
+                leyendaContent.style.overflowY = 'visible';
+                leyendaContent.style.maxHeight = 'none';
+            }
+            
             leyenda.style.display = 'block';
         }
 
+        // ===== FUNCIÓN: ZOOM A TODO =====
         function zoomToAll() {
             const capasActivas = Object.values(capasCargadas);
             
@@ -1621,6 +2009,7 @@
             map.fitBounds(grupo.getBounds(), { padding: [20, 20] });
         }
 
+        // ===== FUNCIÓN: LIMPIAR MAPA =====
         function limpiarMapa() {
             Object.values(capasCargadas).forEach(capa => {
                 map.removeLayer(capa);
@@ -1636,8 +2025,9 @@
             actualizarLeyenda();
         }
 
-        // ===== FUNCIÓN MEJORADA: INICIALIZAR EVENTOS =====
+        // ===== FUNCIÓN: INICIALIZAR EVENTOS =====
         function inicializarEventos() {
+            // Eventos de búsqueda
             document.getElementById('search-input').addEventListener('input', function(e) {
                 buscarLocalidades(e.target.value);
             });
@@ -1648,97 +2038,10 @@
                 }
             });
 
-            document.getElementById('get-current-location').addEventListener('click', function() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-                        establecerUbicacion(lat, lng);
-                    }, function(error) {
-                        alert('Error al obtener la ubicación: ' + error.message);
-                    });
-                } else {
-                    alert('La geolocalización no es soportada por este navegador.');
-                }
-            });
-
-            // MEJORA: Cambiar el manejo del modo de selección en el mapa
+            // Eventos para formulario de reportes
             document.getElementById('pick-on-map').addEventListener('click', function() {
                 activarSeleccionUbicacion();
             });
-
-            // MEJORA: Cambiar el evento de clic del mapa para manejar mejor la selección
-            map.on('click', function(e) {
-                if (isPickingLocation) {
-                    establecerUbicacion(e.latlng.lat, e.latlng.lng);
-                    desactivarSeleccionUbicacion();
-                }
-            });
-
-            // MEJORA: Permitir cancelar la selección con la tecla ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && isPickingLocation) {
-                    desactivarSeleccionUbicacion();
-                }
-            });
-
-            // MEJORA: Cambiar el cursor cuando esté en modo selección
-            function activarSeleccionUbicacion() {
-                isPickingLocation = true;
-                map.getContainer().style.cursor = 'crosshair';
-                
-                // Mostrar mensaje más claro
-                mostrarMensajeSeleccion();
-                
-                // Deshabilitar temporalmente otros controles
-                document.getElementById('pick-on-map').disabled = true;
-                document.getElementById('pick-on-map').innerHTML = '<i class="fas fa-map-pin"></i> Seleccionando...';
-            }
-
-            function desactivarSeleccionUbicacion() {
-                isPickingLocation = false;
-                map.getContainer().style.cursor = '';
-                
-                // Restaurar botón
-                document.getElementById('pick-on-map').disabled = false;
-                document.getElementById('pick-on-map').innerHTML = '<i class="fas fa-map-pin"></i> Seleccionar en Mapa';
-                
-                // Ocultar mensaje
-                ocultarMensajeSeleccion();
-            }
-
-            function mostrarMensajeSeleccion() {
-                // Crear o mostrar mensaje de selección
-                let mensaje = document.getElementById('seleccion-mensaje');
-                if (!mensaje) {
-                    mensaje = document.createElement('div');
-                    mensaje.id = 'seleccion-mensaje';
-                    mensaje.style.cssText = `
-                        position: absolute;
-                        top: 10px;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        background: rgba(31, 41, 55, 0.95);
-                        color: white;
-                        padding: 10px 20px;
-                        border-radius: 8px;
-                        z-index: 1000;
-                        border: 1px solid var(--primary);
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                        font-size: 14px;
-                    `;
-                    document.querySelector('.map-container').appendChild(mensaje);
-                }
-                mensaje.innerHTML = '<i class="fas fa-crosshairs"></i> Haz clic en el mapa para seleccionar ubicación (ESC para cancelar)';
-                mensaje.style.display = 'block';
-            }
-
-            function ocultarMensajeSeleccion() {
-                const mensaje = document.getElementById('seleccion-mensaje');
-                if (mensaje) {
-                    mensaje.style.display = 'none';
-                }
-            }
 
             document.getElementById('set-manual-coords').addEventListener('click', function() {
                 const lat = parseFloat(document.getElementById('lat-input').value);
@@ -1754,6 +2057,180 @@
             document.getElementById('report-send').addEventListener('click', function() {
                 enviarReporte();
             });
+
+            // Eventos del mapa
+            map.on('click', function(e) {
+                if (isPickingLocation) {
+                    establecerUbicacion(e.latlng.lat, e.latlng.lng);
+                    desactivarSeleccionUbicacion();
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (isPickingLocation) {
+                        desactivarSeleccionUbicacion();
+                    }
+                }
+            });
+
+            // ===== EVENTOS PARA EL MODAL DE USO DE SUELO =====
+            document.getElementById('close-modal').addEventListener('click', cerrarModalUsoSuelo);
+            document.getElementById('close-info').addEventListener('click', cerrarModalUsoSuelo);
+            
+            // Cerrar modal al hacer clic fuera
+            document.getElementById('uso-suelo-modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    cerrarModalUsoSuelo();
+                }
+            });
+        }
+
+        // ===== FUNCIONES AUXILIARES PARA SELECCIÓN DE UBICACIÓN =====
+        function activarSeleccionUbicacion() {
+            isPickingLocation = true;
+            map.getContainer().style.cursor = 'crosshair';
+            mostrarMensajeSeleccion();
+            document.getElementById('pick-on-map').disabled = true;
+            document.getElementById('pick-on-map').innerHTML = '<i class="fas fa-map-pin"></i> Seleccionando...';
+        }
+
+        function desactivarSeleccionUbicacion() {
+            isPickingLocation = false;
+            map.getContainer().style.cursor = '';
+            document.getElementById('pick-on-map').disabled = false;
+            document.getElementById('pick-on-map').innerHTML = '<i class="fas fa-map-pin"></i> Seleccionar en Mapa';
+            ocultarMensajeSeleccion();
+        }
+
+        function mostrarMensajeSeleccion() {
+            let mensaje = document.getElementById('seleccion-mensaje');
+            if (!mensaje) {
+                mensaje = document.createElement('div');
+                mensaje.id = 'seleccion-mensaje';
+                mensaje.style.cssText = `
+                    position: absolute;
+                    top: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(31, 41, 55, 0.95);
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    z-index: 1000;
+                    border: 1px solid var(--primary);
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    font-size: 14px;
+                `;
+                document.querySelector('.map-container').appendChild(mensaje);
+            }
+            mensaje.innerHTML = '<i class="fas fa-crosshairs"></i> Haz clic en el mapa para seleccionar ubicación (ESC para cancelar)';
+            mensaje.style.display = 'block';
+        }
+
+        function ocultarMensajeSeleccion() {
+            const mensaje = document.getElementById('seleccion-mensaje');
+            if (mensaje) {
+                mensaje.style.display = 'none';
+            }
+        }
+
+        // ===== FUNCIONES PARA MODAL DE USO DE SUELO =====
+        function openUsoSueloModal(polygonData, feature) {
+            // Obtener información del polígono
+            const usoActual = polygonData.clas_bás || polygonData.desc_cve || 'No especificado';
+            const clasificacion = polygonData.clas_bás || 'No disponible';
+            const area = polygonData.area ? `${polygonData.area} ha` : 'No disponible';
+            const descripcion = polygonData.desc_cve || 'No disponible';
+            
+            // Calcular centroide
+            const centroide = calcularCentroide(feature);
+            
+            // Actualizar información
+            document.getElementById('info-uso-actual').textContent = usoActual;
+            document.getElementById('info-clasificacion').textContent = clasificacion;
+            document.getElementById('info-area').textContent = area;
+            document.getElementById('info-descripcion').textContent = descripcion;
+            document.getElementById('info-coords-centroide').textContent = `${centroide.lat.toFixed(6)}, ${centroide.lng.toFixed(6)}`;
+            
+            // Mostrar modal
+            document.getElementById('uso-suelo-modal').style.display = 'flex';
+        }
+
+        function calcularCentroide(feature) {
+            const geometry = feature.geometry;
+            
+            if (geometry.type === 'Polygon') {
+                const coordinates = geometry.coordinates[0];
+                let latSum = 0;
+                let lngSum = 0;
+                
+                for (let i = 0; i < coordinates.length; i++) {
+                    lngSum += coordinates[i][0];
+                    latSum += coordinates[i][1];
+                }
+                
+                return {
+                    lat: latSum / coordinates.length,
+                    lng: lngSum / coordinates.length
+                };
+            } else if (geometry.type === 'MultiPolygon') {
+                const coordinates = geometry.coordinates[0][0];
+                let latSum = 0;
+                let lngSum = 0;
+                
+                for (let i = 0; i < coordinates.length; i++) {
+                    lngSum += coordinates[i][0];
+                    latSum += coordinates[i][1];
+                }
+                
+                return {
+                    lat: latSum / coordinates.length,
+                    lng: lngSum / coordinates.length
+                };
+            }
+            
+            const bounds = L.geoJSON(feature).getBounds();
+            return bounds.getCenter();
+        }
+
+        function cerrarModalUsoSuelo() {
+            document.getElementById('uso-suelo-modal').style.display = 'none';
+        }
+
+        // ===== FUNCIÓN AUXILIAR PARA DEBUG =====
+        async function verificarTablas() {
+            console.log('🔍 Verificando tablas en Supabase...');
+            
+            const tablas = [
+                'Localidades 1', 
+                'San Francisco_Mun', 
+                'Usos de Suelo ',
+                'Zonificación Primaria_',
+                'Colonias_SFR',
+                'reportes_ciudadanos',
+                'propuestas_ciudadanas'
+            ];
+            
+            for (const tabla of tablas) {
+                try {
+                    const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/${encodeURIComponent(tabla)}?limit=1`, {
+                        headers: { 
+                            'apikey': SUPABASE_KEY, 
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    if (respuesta.ok) {
+                        console.log(`✅ ${tabla}: ACCESIBLE`);
+                    } else {
+                        console.log(`❌ ${tabla}: NO ACCESIBLE (${respuesta.status})`);
+                    }
+                } catch (error) {
+                    console.log(`❌ ${tabla}: ERROR - ${error.message}`);
+                }
+            }
         }
     </script>
 </body>
