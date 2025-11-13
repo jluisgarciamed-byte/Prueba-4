@@ -7,22 +7,19 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         /* ===== VARIABLES CSS ===== */
         :root {
-            --primary: #10b981;          /* Color principal verde */
-            --primary-dark: #059669;     /* Verde oscuro */
-            --primary-light: #34d399;    /* Verde claro */
-            --secondary: #3b82f6;        /* Color secundario azul */
-            --secondary-dark: #2563eb;   /* Azul oscuro */
-            --dark: #1f2937;             /* Fondo oscuro */
-            --darker: #111827;           /* Fondo más oscuro */
-            --light: #f8fafc;            /* Texto claro */
-            --gray: #6b7280;             /* Texto gris */
-            --gray-light: #e5e7eb;       /* Bordes grises */
-            --success: #10b981;          /* Color éxito */
-            --warning: #f59e0b;          /* Color advertencia */
-            --error: #ef4444;            /* Color error */
+            --primary: #0F3B38;          /* Color principal verde petróleo */
+            --primary-dark: #0B2A27;     /* Verde petróleo más oscuro para hover */
+            --primary-light: #1A5C56;    /* Bordes/sombras sutiles */
+            --surface: rgba(15, 59, 56, 0.95); /* Paneles/controles oscuros */
+            --surface-hover: rgba(15, 59, 56, 0.92);
+            --light: #FFFFFF;            /* Texto sobre oscuro */
+            --gray: #D1D5DB;             /* Iconos secundarios */
+            --border: rgba(255, 255, 255, 0.12);
+            --vh: 1vh;                   /* Variable para altura móvil */
         }
 
         /* ===== ESTILOS GENERALES ===== */
@@ -34,7 +31,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
             color: var(--light);
             line-height: 1.6;
             overflow: hidden;
@@ -42,12 +39,13 @@
 
         /* ===== ENCABEZADO ===== */
         .header {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--primary);
             backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border);
             padding: 1rem 2rem;
-            position: relative;
-            z-index: 1000;
+            position: sticky;
+            top: 0;
+            z-index: 1001;
         }
 
         .header-content {
@@ -67,20 +65,96 @@
 
         .logo i {
             font-size: 2rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--light);
         }
 
         .logo h1 {
-            font-weight: 700;
-            font-size: 1.5rem;
-            background: linear-gradient(135deg, var(--primary-light) 0%, var(--light) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.6rem; /* puedes dejar 1.5rem si te gusta más compacto */
+    letter-spacing: 0.5px;
+    text-transform: uppercase; /* quítalo si no quieres mayúsculas */
+    color: var(--light);
+}
+/* ===== Ajuste de logos y alineación del encabezado ===== */
+
+/* Contenedor del encabezado */
+.header-content {
+  display: flex;
+  justify-content: flex-start;   /* Alinea a la izquierda */
+  align-items: center;
+  gap: 2rem;                     /* Espacio entre logo y buscador */
+  max-width: 1400px;
+  margin: 0 auto;
+  padding-left: 1rem;            /* empuje hacia la izquierda */
+}
+
+/* Contenedor de los logos */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;                     /* más espacio entre los logos */
+}
+
+/* Logo ODS 17 — más grande y circular */
+.logo-ods {
+  height: 60px;                  /* más grande */
+  width: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: none;
+  box-shadow: none;
+  transition: transform 0.3s ease;
+}
+
+.logo-ods:hover {
+  transform: scale(1.08);
+}
+
+/* Logo IMPLAN */
+.logo-implan {
+  height: 48px;
+  border-radius: 6px;
+}
+
+/* Texto principal */
+.logo h1 {
+  margin: 0 0.25rem;
+  line-height: 1;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 2rem; /* un poco más grande */
+  letter-spacing: 1px;
+  color: var(--light);
+}
+
+/* ===== Ajustes responsivos ===== */
+@media (max-width: 1024px) {
+  .logo-ods {
+    height: 50px;
+    width: 50px;
+  }
+  .logo-implan {
+    height: 42px;
+  }
+  .logo h1 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    justify-content: space-between; /* en móvil, que el buscador se mantenga separado */
+    padding-left: 0.5rem;
+  }
+  .logo-ods {
+    height: 40px;
+    width: 40px;
+  }
+  .logo h1 {
+    font-size: 1.3rem;
+  }
+}
 
         /* Barra de búsqueda */
         .search-container {
@@ -91,9 +165,9 @@
         .search-input {
             width: 100%;
             padding: 0.75rem 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             color: var(--light);
             font-size: 0.9rem;
             backdrop-filter: blur(10px);
@@ -106,9 +180,9 @@
 
         .search-input:focus {
             outline: none;
-            border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+            border-color: var(--primary-light);
+            background: var(--surface-hover);
+            box-shadow: 0 0 0 3px rgba(26, 92, 86, 0.1);
         }
 
         /* Resultados de búsqueda */
@@ -117,7 +191,7 @@
             top: 100%;
             left: 0;
             right: 0;
-            background: rgba(31, 41, 55, 0.95);
+            background: var(--surface);
             backdrop-filter: blur(20px);
             border-radius: 12px;
             margin-top: 0.5rem;
@@ -126,47 +200,48 @@
             z-index: 1000;
             max-height: 200px;
             overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
         }
 
         .search-result-item {
             padding: 0.75rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border);
             cursor: pointer;
             transition: all 0.2s ease;
         }
 
         .search-result-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface-hover);
         }
 
         .result-type {
             font-size: 0.7rem;
-            color: var(--primary-light);
+            color: var(--gray);
             margin-top: 0.25rem;
         }
 
         /* ===== LAYOUT PRINCIPAL ===== */
         .main-container {
             display: flex;
-            height: calc(100vh - 80px);
+            height: calc(var(--vh, 1vh) * 100 - 80px);
         }
 
         /* ===== PANEL LATERAL ===== */
         .sidebar {
             width: 400px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            border-right: 1px solid var(--border);
             overflow-y: auto;
             padding: 1.5rem;
+            transition: transform 0.3s ease;
         }
 
         /* Paneles individuales */
         .panel {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             margin-bottom: 1.5rem;
             overflow: hidden;
             backdrop-filter: blur(10px);
@@ -174,15 +249,15 @@
         }
 
         .panel:hover {
-            border-color: rgba(255, 255, 255, 0.2);
+            border-color: var(--primary-light);
             transform: translateY(-2px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
         }
 
         /* Encabezado de panel */
         .panel-header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
+            background: var(--primary);
+            color: var(--light);
             padding: 1.25rem 1.5rem;
             display: flex;
             align-items: center;
@@ -191,11 +266,13 @@
 
         .panel-header i {
             font-size: 1.1rem;
+            color: var(--light);
         }
 
         .panel-header h3 {
             font-weight: 600;
             font-size: 1rem;
+            color: var(--light);
         }
 
         /* Cuerpo del panel */
@@ -211,36 +288,36 @@
         }
 
         .basemap-item {
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--border);
             border-radius: 12px;
             padding: 1rem;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             backdrop-filter: blur(10px);
         }
 
         .basemap-item:hover {
-            border-color: var(--primary);
-            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--primary-light);
+            background: var(--surface-hover);
             transform: translateY(-2px);
         }
 
         .basemap-item.active {
-            border-color: var(--primary);
-            background: rgba(16, 185, 129, 0.15);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+            border-color: var(--primary-light);
+            background: var(--surface-hover);
+            box-shadow: 0 0 0 3px rgba(26, 92, 86, 0.1);
         }
 
         .basemap-item i {
             font-size: 1.5rem;
             margin-bottom: 0.5rem;
-            color: var(--primary-light);
+            color: var(--light);
         }
 
         .basemap-item.active i {
-            color: var(--primary);
+            color: var(--light);
         }
 
         .basemap-item span {
@@ -261,24 +338,24 @@
             align-items: center;
             gap: 0.75rem;
             padding: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             backdrop-filter: blur(10px);
         }
 
         .layer-item:hover {
-            border-color: var(--primary);
-            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--primary-light);
+            background: var(--surface-hover);
             transform: translateY(-2px);
         }
 
         .layer-item.active {
-            border-color: var(--primary);
-            background: rgba(16, 185, 129, 0.15);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+            border-color: var(--primary-light);
+            background: var(--surface-hover);
+            box-shadow: 0 0 0 3px rgba(26, 92, 86, 0.1);
         }
 
         /* Icono de capa */
@@ -289,9 +366,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: var(--light);
             font-size: 1rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            background: var(--primary);
         }
 
         .layer-info {
@@ -307,14 +384,14 @@
 
         .layer-type {
             font-size: 0.75rem;
-            color: var(--primary-light);
+            color: var(--gray);
         }
 
         /* Toggle de capa */
         .layer-toggle {
             width: 48px;
             height: 24px;
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--border);
             border-radius: 12px;
             position: relative;
             cursor: pointer;
@@ -330,7 +407,7 @@
             position: absolute;
             width: 18px;
             height: 18px;
-            background: white;
+            background: var(--light);
             border-radius: 50%;
             top: 3px;
             left: 3px;
@@ -358,20 +435,20 @@
         .form-input, .form-select, .form-textarea {
             width: 100%;
             padding: 0.75rem 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             border-radius: 12px;
             font-size: 0.9rem;
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             color: var(--light);
             backdrop-filter: blur(10px);
         }
 
         .form-input:focus, .form-select:focus, .form-textarea:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(26, 92, 86, 0.1);
+            background: var(--surface-hover);
         }
 
         .form-textarea {
@@ -381,10 +458,10 @@
 
         /* Contenedor de coordenadas */
         .coords-container {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             padding: 1.25rem;
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             backdrop-filter: blur(10px);
         }
 
@@ -394,19 +471,19 @@
             gap: 0.5rem;
             margin-bottom: 1rem;
             padding: 0.75rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
         }
 
         .coords-display i {
-            color: var(--primary);
+            color: var(--light);
         }
 
         #coords-text {
             font-family: 'Monaco', 'Consolas', monospace;
             font-size: 0.8rem;
-            color: var(--primary-light);
+            color: var(--gray);
         }
 
         .coords-actions {
@@ -428,51 +505,52 @@
             width: 100%;
             justify-content: center;
             backdrop-filter: blur(10px);
+            min-height: 44px;
         }
 
         .btn-map {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--secondary);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background: var(--surface);
+            color: var(--light);
+            border: 1px solid var(--border);
         }
 
         .btn-map:hover {
-            background: rgba(59, 130, 246, 0.2);
+            background: var(--surface-hover);
             transform: translateY(-2px);
-            box-shadow: 0 8px 15px -3px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2);
         }
 
         .btn-set {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            background: var(--surface);
+            color: var(--light);
+            border: 1px solid var(--border);
         }
 
         .btn-set:hover {
-            background: rgba(245, 158, 11, 0.2);
+            background: var(--surface-hover);
             transform: translateY(-2px);
-            box-shadow: 0 8px 15px -3px rgba(245, 158, 11, 0.2);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2);
         }
 
         .btn-send {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
+            background: var(--primary);
+            color: var(--light);
             margin-top: 1rem;
             border: none;
             font-weight: 600;
         }
 
         .btn-send:hover {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, #047857 100%);
+            background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 12px 20px -5px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 12px 20px -5px rgba(11, 42, 39, 0.4);
         }
 
         /* Coordenadas manuales */
         .coords-manual {
             margin-top: 1rem;
             padding-top: 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid var(--border);
         }
 
         .coords-manual label {
@@ -491,45 +569,47 @@
         .coord-input {
             flex: 1;
             padding: 0.5rem 0.75rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             border-radius: 8px;
             font-size: 0.8rem;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             color: var(--light);
             backdrop-filter: blur(10px);
+            min-height: 44px;
         }
 
         .coord-input:focus {
             outline: none;
-            border-color: var(--primary);
+            border-color: var(--primary-light);
         }
 
         /* ===== PANEL DE ESTADO ===== */
         .status-panel {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: var(--surface);
+            border: 1px solid var(--border);
             border-radius: 12px;
             padding: 1rem 1.25rem;
             margin-top: 1rem;
             backdrop-filter: blur(10px);
+            color: var(--light);
         }
 
         .status-panel.success {
-            background: rgba(16, 185, 129, 0.1);
-            border-color: rgba(16, 185, 129, 0.3);
-            color: var(--primary-light);
+            background: var(--surface);
+            border-color: var(--primary-light);
+            color: var(--light);
         }
 
         .status-panel.error {
-            background: rgba(239, 68, 68, 0.1);
+            background: var(--surface);
             border-color: rgba(239, 68, 68, 0.3);
-            color: var(--error);
+            color: #ef4444;
         }
 
         .status-panel.warning {
-            background: rgba(245, 158, 11, 0.1);
+            background: var(--surface);
             border-color: rgba(245, 158, 11, 0.3);
-            color: var(--warning);
+            color: #f59e0b;
         }
 
         /* ===== CONTENEDOR DEL MAPA ===== */
@@ -548,19 +628,34 @@
             position: absolute;
             bottom: 20px;
             right: 20px;
-            background: rgba(31, 41, 55, 0.95);
+            background: var(--surface);
             backdrop-filter: blur(20px);
             padding: 1.25rem;
             border-radius: 16px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             max-width: 220px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
+            max-height: 350px;
+            overflow-y: auto;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .legend.collapsed {
+            transform: translateY(calc(100% - 60px));
+            opacity: 0.8;
+        }
+
+        .legend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
         }
 
         .legend-title {
             font-weight: 600;
-            margin-bottom: 0.75rem;
             color: var(--light);
             font-size: 0.9rem;
             display: flex;
@@ -569,7 +664,20 @@
         }
 
         .legend-title i {
-            color: var(--primary);
+            color: var(--light);
+        }
+
+        .legend-toggle {
+            background: none;
+            border: none;
+            color: var(--light);
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .legend.collapsed .legend-toggle {
+            transform: rotate(180deg);
         }
 
         .legend-item {
@@ -591,24 +699,33 @@
             color: var(--light);
         }
 
+        .legend-content {
+            transition: max-height 0.3s ease;
+            overflow: hidden;
+        }
+
+        .legend.collapsed .legend-content {
+            max-height: 0;
+        }
+
         /* ===== INDICADOR DE CARGA ===== */
         .loading {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(31, 41, 55, 0.95);
+            background: var(--surface);
             backdrop-filter: blur(20px);
             padding: 2rem 2.5rem;
             border-radius: 16px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             text-align: center;
             z-index: 1000;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
         }
 
         .loading-spinner {
-            border: 3px solid rgba(255, 255, 255, 0.1);
+            border: 3px solid var(--border);
             border-top: 3px solid var(--primary);
             border-radius: 50%;
             width: 40px;
@@ -636,9 +753,9 @@
         .control-btn {
             width: 48px;
             height: 48px;
-            background: rgba(31, 41, 55, 0.95);
+            background: var(--surface);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             border-radius: 12px;
             box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.3);
             display: flex;
@@ -652,8 +769,9 @@
         .control-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.4);
-            color: var(--primary);
-            border-color: var(--primary);
+            color: var(--light);
+            border-color: var(--primary-light);
+            background: var(--surface-hover);
         }
 
         /* ===== SCROLLBAR PERSONALIZADO ===== */
@@ -662,7 +780,7 @@
         }
 
         .sidebar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--border);
             border-radius: 3px;
         }
 
@@ -713,14 +831,14 @@
         }
 
         .modal-container {
-            background: rgba(31, 41, 55, 0.95);
+            background: var(--surface);
             border-radius: 16px;
             padding: 2rem;
             max-width: 500px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
@@ -730,7 +848,7 @@
             align-items: center;
             margin-bottom: 1.5rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border);
         }
 
         .modal-title {
@@ -749,10 +867,15 @@
             font-size: 1.5rem;
             cursor: pointer;
             transition: color 0.3s ease;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-close:hover {
-            color: var(--primary);
+            color: var(--gray);
         }
 
         .modal-body {
@@ -772,26 +895,28 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
+            min-height: 44px;
         }
 
         .btn-cancel {
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--surface);
             color: var(--light);
+            border: 1px solid var(--border);
         }
 
         .btn-cancel:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--surface-hover);
         }
 
         .btn-save {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
+            background: var(--primary);
+            color: var(--light);
         }
 
         .btn-save:hover {
-            background: linear-gradient(135deg, var(--primary-dark) 0%, #047857 100%);
+            background: var(--primary-dark);
             transform: translateY(-2px);
-            box-shadow: 0 8px 15px -3px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 8px 15px -3px rgba(11, 42, 39, 0.3);
         }
 
         /* ===== INFORMACIÓN DE USO DE SUELO ===== */
@@ -803,15 +928,15 @@
         }
 
         .info-item {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--surface);
             padding: 1rem;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
         }
 
         .info-label {
             font-size: 0.8rem;
-            color: var(--primary-light);
+            color: var(--gray);
             margin-bottom: 0.25rem;
         }
 
@@ -828,102 +953,223 @@
         .info-section-title {
             font-weight: 600;
             margin-bottom: 0.75rem;
-            color: var(--primary);
+            color: var(--light);
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        /* ===== ANIMACIÓN DE ÉXITO ===== */
-        .success-animation {
+        /* ===== ICONOS FONTAWESOME ===== */
+        .fa, .fas, .far, .fal, .fab {
+            color: var(--light);
+        }
+
+        .fa:hover, .fas:hover, .far:hover, .fal:hover, .fab:hover {
+            color: var(--gray);
+        }
+
+        /* ===== ELEMENTOS RESPONSIVOS ADICIONALES ===== */
+        
+        /* Botón FAB para móviles */
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--light);
+            font-size: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1002;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .fab:hover {
+            background: var(--primary-dark);
+            transform: scale(1.1);
+        }
+
+        /* Overlay para cerrar sidebar en móviles */
+        .sidebar-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s ease;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
         }
 
-        .success-animation.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .sombrero-container {
-            position: relative;
-            margin-bottom: 2rem;
-        }
-
-        .sombrero {
-            font-size: 8rem;
-            color: #8B4513;
-            transform: translateY(-20px);
-            animation: sombreroBounce 1s ease-in-out;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        }
-
-        @keyframes sombreroBounce {
-            0% { transform: translateY(-100px) rotate(-10deg); opacity: 0; }
-            50% { transform: translateY(10px) rotate(5deg); }
-            70% { transform: translateY(-5px) rotate(-2deg); }
-            100% { transform: translateY(0) rotate(0); opacity: 1; }
-        }
-
-        .firework {
-            position: absolute;
-            width: 4px;
+        /* Handle para bottom sheet */
+        .bottom-sheet-handle {
+            width: 40px;
             height: 4px;
-            border-radius: 50%;
-            background: #FFD700;
-            box-shadow: 0 0 10px 2px #FFD700;
-            animation: fireworkExplode 1.5s ease-out forwards;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 0 auto 1rem;
+            cursor: grab;
         }
 
-        @keyframes fireworkExplode {
-            0% {
-                transform: translate(0, 0) scale(1);
-                opacity: 1;
+        /* ===== MEDIA QUERIES PARA RESPONSIVIDAD ===== */
+        
+        /* Tablets y pantallas pequeñas */
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                z-index: 1000;
+                width: 400px;
+                max-width: 90vw;
+                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
             }
-            100% {
-                transform: translate(var(--tx), var(--ty)) scale(0);
-                opacity: 0;
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .fab {
+                display: flex;
+            }
+            
+            .header-content {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            
+            .search-container {
+                width: 100%;
+                order: 3;
             }
         }
 
-        .success-message {
-            font-size: 2.5rem;
-            font-weight: 700;
-            text-align: center;
-            color: white;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #10b981, #3b82f6, #8b5cf6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            opacity: 0;
-            animation: messageFadeIn 0.5s ease-out 0.5s forwards;
+        /* Móviles */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .logo h1 {
+                font-size: 1.25rem;
+            }
+            
+            .search-input {
+                font-size: 16px; /* Evita zoom en iOS */
+            }
+            
+            .sidebar {
+                width: 100%;
+                max-width: 100%;
+                height: 70%;
+                top: auto;
+                bottom: 0;
+                transform: translateY(100%);
+                border-radius: 20px 20px 0 0;
+                border-right: none;
+                border-bottom: none;
+            }
+            
+            .sidebar.open {
+                transform: translateY(0);
+            }
+            
+            .sidebar.expanded {
+                height: 90%;
+            }
+            
+            .sidebar.collapsed {
+                height: 10%;
+            }
+            
+            .map-controls {
+                top: 80px; /* Evita solapar con el header */
+                right: 10px;
+            }
+            
+            .legend {
+                right: 10px;
+                bottom: 10px;
+                max-width: calc(100vw - 20px);
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-container {
+                padding: 1.5rem;
+            }
         }
 
-        @keyframes messageFadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .header {
+                padding: 0.75rem;
+            }
+            
+            .logo h1 {
+                font-size: 1.1rem;
+            }
+            
+            .logo i {
+                font-size: 1.5rem;
+            }
+            
+            .panel-body {
+                padding: 1rem;
+            }
+            
+            .basemap-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-container {
+                padding: 1rem;
+            }
+            
+            .modal-footer {
+                flex-direction: column;
+            }
+            
+            .btn-modal {
+                width: 100%;
+            }
         }
 
-        .success-submessage {
-            font-size: 1.5rem;
-            color: var(--primary-light);
-            text-align: center;
-            opacity: 0;
-            animation: messageFadeIn 0.5s ease-out 1s forwards;
+        /* Accesibilidad: mejorar contraste en modo de alto contraste */
+        @media (prefers-contrast: high) {
+            .panel {
+                border: 2px solid var(--light);
+            }
+            
+            .control-btn, .btn {
+                border: 2px solid var(--light);
+            }
+        }
+
+        /* Mejoras para dispositivos táctiles */
+        @media (hover: none) and (pointer: coarse) {
+            .panel:hover {
+                transform: none;
+            }
+            
+            .control-btn:hover, .btn:hover {
+                transform: none;
+            }
+            
+            .layer-item:hover, .basemap-item:hover {
+                transform: none;
+            }
         }
     </style>
 </head>
@@ -932,7 +1178,9 @@
     <header class="header">
         <div class="header-content">
             <div class="logo">
-                <i class="fas fa-users"></i>
+      <!-- Logo ODS 17 -->
+    <img src="ODS17.png" alt="ODS 17 - Alianzas para lograr los objetivos" class="logo-ods">
+                <img src="LOGOTIPOGRISIMPLAN.png" alt="Logo IMPLAN" style="height: 40px; border-radius: 8px;">
                 <h1>Geoportal Participativo</h1>
             </div>
             <div class="search-container">
@@ -945,7 +1193,10 @@
     <!-- CONTENEDOR PRINCIPAL -->
     <div class="main-container">
         <!-- PANEL LATERAL IZQUIERDO -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
+            <!-- Handle para bottom sheet en móviles -->
+            <div class="bottom-sheet-handle" id="bottom-sheet-handle"></div>
+            
             <!-- PANEL DE MAPAS BASE -->
             <div class="panel">
                 <div class="panel-header">
@@ -972,7 +1223,7 @@
             <div class="panel">
                 <div class="panel-header">
                     <i class="fas fa-comment-medical"></i>
-                    <h3>Enviar Reporte</h3>
+                    <h3>Mi Participación</h3>
                 </div>
                 <div class="panel-body">
                     <div class="report-form">
@@ -998,12 +1249,12 @@
                         
                         <div class="form-group">
                             <label for="comentarios">Comentarios</label>
-                            <textarea id="comentarios" class="form-textarea" placeholder="Describe el problema o requerimiento"></textarea>
+                            <textarea id="comentarios" class="form-textarea" placeholder="Describe el problema o Propuesta"></textarea>
                         </div>
                         
                         <!-- Selección de ubicación para el reporte -->
                         <div class="form-group">
-                            <label>Ubicación del Reporte</label>
+                            <label>Ubicación del Aporte</label>
                             <div class="coords-container">
                                 <div class="coords-display">
                                     <i class="fas fa-map-marker-alt"></i>
@@ -1020,10 +1271,10 @@
                                 <div class="coords-manual">
                                     <label>Coordenadas Manuales</label>
                                     <div class="coords-inputs">
-                                        <input type="number" id="lat-input" placeholder="Latitud" step="any" class="coord-input">
+                                        <input type="number" id="lat-input" placeholder="Latitud" step="any" class="coord-input" inputmode="decimal">
                                     </div>
                                     <div class="coords-inputs">
-                                        <input type="number" id="lng-input" placeholder="Longitud" step="any" class="coord-input">
+                                        <input type="number" id="lng-input" placeholder="Longitud" step="any" class="coord-input" inputmode="decimal">
                                     </div>
                                     <div class="coords-inputs">
                                         <button type="button" id="set-manual-coords" class="btn btn-set">
@@ -1038,7 +1289,7 @@
                         <!-- Botón para enviar el reporte -->
                         <button type="button" id="report-send" class="btn btn-send">
                             <i class="fas fa-paper-plane"></i>
-                            Enviar Reporte
+                            Enviar Participación
                         </button>
                     </div>
                 </div>
@@ -1047,6 +1298,9 @@
             <!-- PANEL DE ESTADO DE LA CONEXIÓN -->
             <div id="status" class="status-panel"></div>
         </aside>
+
+        <!-- Overlay para cerrar sidebar en móviles -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
         <!-- CONTENEDOR DEL MAPA PRINCIPAL -->
         <main class="map-container">
@@ -1067,14 +1321,26 @@
             
             <!-- LEYENDA DEL MAPA -->
             <div id="legend" class="legend" style="display: none;">
-                <div class="legend-title">
-                    <i class="fas fa-layer-group"></i>
-                    Leyenda
+                <div class="legend-header">
+                    <div class="legend-title">
+                        <i class="fas fa-layer-group"></i>
+                        Leyenda
+                    </div>
+                    <button class="legend-toggle" id="legend-toggle" aria-label="Alternar leyenda">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
                 </div>
-                <div id="legend-content"></div>
+                <div class="legend-content">
+                    <div id="legend-content"></div>
+                </div>
             </div>
         </main>
     </div>
+
+    <!-- Botón FAB para abrir sidebar en móviles -->
+    <button class="fab" id="fab" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+        <i class="fas fa-bars"></i>
+    </button>
 
     <!-- MODAL PARA USO DE SUELO - SOLO INFORMACIÓN -->
     <div id="uso-suelo-modal" class="modal-overlay" style="display: none;">
@@ -1084,7 +1350,7 @@
                     <i class="fas fa-vector-square"></i>
                     Información de Uso de Suelo
                 </h2>
-                <button class="modal-close" id="close-modal">&times;</button>
+                <button class="modal-close" id="close-modal" aria-label="Cerrar modal">&times;</button>
             </div>
             
             <!-- Contenido de información -->
@@ -1130,15 +1396,6 @@
                 <button class="btn-modal btn-cancel" id="close-info">Cerrar</button>
             </div>
         </div>
-    </div>
-
-    <!-- ANIMACIÓN DE ÉXITO -->
-    <div id="success-animation" class="success-animation">
-        <div class="sombrero-container">
-            <div class="sombrero">🤠</div>
-        </div>
-        <div class="success-message">¡Reporte Enviado con Éxito!</div>
-        <div class="success-submessage">Gracias por construir un futuro mejor</div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1197,15 +1454,166 @@
         let reportesCargados = [];
         let selectedPolygonData = null;
 
+        // ===== NUEVA VARIABLE: CONFIGURACIÓN DINÁMICA DE CAPAS =====
+        let configCapas = {};
+
+        // ===== VARIABLES PARA RESPONSIVIDAD =====
+        let isMobile = false;
+        let isTablet = false;
+        let sidebarState = 'closed'; // 'closed', 'open', 'expanded', 'collapsed'
+
         // ===== INICIALIZACIÓN DE LA APLICACIÓN =====
         document.addEventListener('DOMContentLoaded', function() {
+            inicializarResponsividad();
             inicializarMapa();
             inicializarBasemaps();
+            // ===== MODIFICADO: Ahora cargarCapasDisponibles carga dinámicamente desde Supabase =====
             cargarCapasDisponibles();
             inicializarEventos();
             cargarDatosBusqueda();
             cargarReportes();
         });
+
+        // ===== FUNCIONES DE RESPONSIVIDAD =====
+        
+        // Inicializar variables de responsividad
+        function inicializarResponsividad() {
+            // Calcular altura móvil
+            actualizarAlturaMovil();
+            
+            // Detectar tipo de dispositivo
+            detectarDispositivo();
+            
+            // Añadir event listeners para cambios de tamaño y orientación
+            window.addEventListener('resize', function() {
+                actualizarAlturaMovil();
+                detectarDispositivo();
+                if (map) map.invalidateSize();
+            });
+            
+            window.addEventListener('orientationchange', function() {
+                setTimeout(function() {
+                    actualizarAlturaMovil();
+                    detectarDispositivo();
+                    if (map) map.invalidateSize();
+                }, 300);
+            });
+        }
+        
+        // Actualizar variable CSS --vh para altura móvil
+        function actualizarAlturaMovil() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        // Detectar tipo de dispositivo
+        function detectarDispositivo() {
+            const width = window.innerWidth;
+            isMobile = width <= 768;
+            isTablet = width > 768 && width <= 1024;
+            
+            // Ajustar controles del mapa según el dispositivo
+            ajustarControlesMapa();
+        }
+        
+        // Ajustar controles del mapa según el dispositivo
+        function ajustarControlesMapa() {
+            const mapControls = document.querySelector('.map-controls');
+            if (!mapControls) return;
+            
+            if (isMobile) {
+                // En móviles, mover controles para evitar solapar con header
+                mapControls.style.top = '80px';
+                mapControls.style.right = '10px';
+            } else {
+                // En desktop, posición original
+                mapControls.style.top = '20px';
+                mapControls.style.right = '20px';
+            }
+        }
+        
+        // Abrir/cerrar sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const fab = document.getElementById('fab');
+            const overlay = document.getElementById('sidebar-overlay');
+            
+            if (sidebarState === 'closed') {
+                // Abrir sidebar
+                sidebar.classList.add('open');
+                overlay.style.display = 'block';
+                sidebarState = isMobile ? 'open' : 'open';
+                
+                // Actualizar atributos ARIA
+                fab.setAttribute('aria-expanded', 'true');
+                fab.innerHTML = '<i class="fas fa-times"></i>';
+                
+                // Invalidar tamaño del mapa después de la animación
+                setTimeout(function() {
+                    if (map) map.invalidateSize();
+                }, 300);
+            } else {
+                // Cerrar sidebar
+                sidebar.classList.remove('open', 'expanded', 'collapsed');
+                overlay.style.display = 'none';
+                sidebarState = 'closed';
+                
+                // Actualizar atributos ARIA
+                fab.setAttribute('aria-expanded', 'false');
+                fab.innerHTML = '<i class="fas fa-bars"></i>';
+                
+                // Invalidar tamaño del mapa después de la animación
+                setTimeout(function() {
+                    if (map) map.invalidateSize();
+                }, 300);
+            }
+        }
+        
+        // Expandir/contraer bottom sheet en móviles
+        function toggleBottomSheet() {
+            if (!isMobile) return;
+            
+            const sidebar = document.getElementById('sidebar');
+            
+            if (sidebarState === 'open') {
+                // Expandir
+                sidebar.classList.add('expanded');
+                sidebar.classList.remove('collapsed');
+                sidebarState = 'expanded';
+            } else if (sidebarState === 'expanded') {
+                // Contraer
+                sidebar.classList.remove('expanded');
+                sidebar.classList.add('collapsed');
+                sidebarState = 'collapsed';
+            } else if (sidebarState === 'collapsed') {
+                // Volver a abierto normal
+                sidebar.classList.remove('collapsed');
+                sidebarState = 'open';
+            }
+            
+            // Invalidar tamaño del mapa después de la animación
+            setTimeout(function() {
+                if (map) map.invalidateSize();
+            }, 300);
+        }
+        
+        // Toggle de la leyenda
+        function toggleLeyenda() {
+            const legend = document.getElementById('legend');
+            const toggle = document.getElementById('legend-toggle');
+            
+            if (legend.classList.contains('collapsed')) {
+                // Expandir leyenda
+                legend.classList.remove('collapsed');
+                toggle.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                toggle.setAttribute('aria-label', 'Contraer leyenda');
+            } else {
+                // Colapsar leyenda
+                legend.classList.add('collapsed');
+                toggle.innerHTML = '<i class="fas fa-chevron-up"></i>';
+                toggle.setAttribute('aria-label', 'Expandir leyenda');
+            }
+        }
 
         // ===== FUNCIÓN: CARGAR DATOS PARA BÚSQUEDA (LOCALIDADES Y COLONIAS) =====
         async function cargarDatosBusqueda() {
@@ -1544,9 +1952,6 @@
                 
                 const nuevoReporte = await respuesta.json();
                 
-                // Mostrar animación de éxito
-                mostrarAnimacionExito();
-                
                 // Limpiar formulario
                 document.getElementById('nombre').value = '';
                 document.getElementById('tipo').value = '';
@@ -1563,62 +1968,12 @@
                 selectedLocation = null;
                 cargarReportes();
                 
+                // Mostrar mensaje de éxito simple
+                alert('✅ Reporte enviado con éxito');
+                
             } catch (error) {
                 console.error('Error al enviar reporte:', error);
                 alert('❌ Error al enviar el reporte: ' + error.message);
-            }
-        }
-
-        // ===== FUNCIÓN: MOSTRAR ANIMACIÓN DE ÉXITO =====
-        function mostrarAnimacionExito() {
-            const animacion = document.getElementById('success-animation');
-            const sombreroContainer = document.querySelector('.sombrero-container');
-            
-            // Activar la animación
-            animacion.classList.add('active');
-            
-            // Crear fuegos artificiales
-            crearFuegosArtificiales(sombreroContainer);
-            
-            // Ocultar animación después de 4 segundos
-            setTimeout(() => {
-                animacion.classList.remove('active');
-            }, 4000);
-        }
-
-        // ===== FUNCIÓN: CREAR FUEGOS ARTIFICIALES =====
-        function crearFuegosArtificiales(container) {
-            const colors = ['#FFD700', '#FF4500', '#00FF7F', '#1E90FF', '#FF1493', '#FFA500'];
-            
-            for (let i = 0; i < 30; i++) {
-                const firework = document.createElement('div');
-                firework.className = 'firework';
-                
-                // Posición aleatoria
-                const angle = Math.random() * Math.PI * 2;
-                const distance = 50 + Math.random() * 100;
-                const tx = Math.cos(angle) * distance;
-                const ty = Math.sin(angle) * distance;
-                
-                // Color aleatorio
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                
-                firework.style.cssText = `
-                    --tx: ${tx}px;
-                    --ty: ${ty}px;
-                    background: ${color};
-                    box-shadow: 0 0 10px 2px ${color};
-                    animation-delay: ${Math.random() * 0.5}s;
-                `;
-                
-                container.appendChild(firework);
-                
-                // Eliminar el elemento después de la animación
-                setTimeout(() => {
-                    if (firework.parentNode) {
-                        firework.parentNode.removeChild(firework);
-                    }
-                }, 1500);
             }
         }
 
@@ -1653,6 +2008,11 @@
             `).openPopup();
             
             map.setView([lat, lng], Math.max(map.getZoom(), 16));
+            
+            // Si estamos en móvil y el sidebar está abierto, cerrarlo para ver el mapa
+            if (isMobile && sidebarState !== 'closed') {
+                toggleSidebar();
+            }
         }
 
         // ===== FUNCIONES DE CONVERSIÓN DE GEOMETRÍA =====
@@ -1794,86 +2154,94 @@
             }
         }
 
-        // ===== FUNCIÓN: CARGAR CAPAS DISPONIBLES =====
+        // ===== FUNCIÓN MODIFICADA: CARGAR CAPAS DISPONIBLES DESDE CONFIGURACIÓN DINÁMICA =====
         async function cargarCapasDisponibles() {
             const status = document.getElementById('status');
             const layersContainer = document.getElementById('layers');
             
-            status.textContent = '🔍 Cargando capas disponibles...';
+            status.textContent = '🔍 Cargando configuración de capas...';
             status.className = 'status-panel';
             
             try {
-                const tablasEspaciales = [
-                    'Localidades 1', 
-                    'San Francisco_Mun', 
-                    'Usos de Suelo ',
-                    'Zonificación Primaria_',
-                    'Colonias_SFR'
-                ];
-                const capasValidas = [];
-                
-                for (const tabla of tablasEspaciales) {
-                    try {
-                        const r = await fetch(`${SUPABASE_URL}/rest/v1/${encodeURIComponent(tabla)}?limit=1`, {
-                            headers: { 
-                                'apikey': SUPABASE_KEY, 
-                                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                                'Content-Type': 'application/json'
-                            }
-                        });
-                        
-                        if (r.ok) {
-                            capasValidas.push(tabla);
-                            console.log(`✅ Capa accesible: ${tabla}`);
-                        } else {
-                            console.log(`❌ Capa no accesible: ${tabla}`);
-                        }
-                    } catch (e) {
-                        console.error(`Error al acceder a ${tabla}:`, e);
+                // ===== NUEVA LÓGICA: Cargar configuración desde tabla capas_geoportal =====
+                const respuesta = await fetch(`${SUPABASE_URL}/rest/v1/capas_geoportal?select=*`, {
+                    headers: { 
+                        'apikey': SUPABASE_KEY, 
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json'
                     }
-                }
+                });
                 
-                if (capasValidas.length === 0) {
-                    status.textContent = '❌ No se encontraron capas espaciales accesibles.';
-                    status.className = 'status-panel error';
+                if (!respuesta.ok) throw new Error(`Error ${respuesta.status}: ${respuesta.statusText}`);
+                
+                const configCapasArray = await respuesta.json();
+                
+                // Convertir array a objeto con nombre_tabla como clave
+                configCapas = {};
+                configCapasArray.forEach(capa => {
+                    configCapas[capa.nombre_tabla] = capa;
+                });
+                
+                if (configCapasArray.length === 0) {
+                    status.textContent = '⚠️ No se encontraron capas configuradas en capas_geoportal';
+                    status.className = 'status-panel warning';
                     return;
                 }
                 
-                status.textContent = `✅ ${capasValidas.length} capa(s) disponible(s)`;
+                status.textContent = `✅ ${configCapasArray.length} capa(s) configurada(s)`;
                 status.className = 'status-panel success';
                 
                 layersContainer.innerHTML = '';
-                capasValidas.forEach(capa => {
-                    const tipoGeometria = obtenerTipoGeometria(capa);
-                    const color = obtenerColorPorTipo(tipoGeometria);
+                
+                // Crear items de capa usando la configuración dinámica
+                configCapasArray.forEach(capa => {
+                    const tipoGeometria = capa.tipo_geometria;
+                    const color = capa.color_hex;
                     const icono = obtenerIconoPorTipo(tipoGeometria);
+                    const alias = capa.alias;
                     
                     const layerItem = document.createElement('div');
                     layerItem.className = 'layer-item';
+                    layerItem.setAttribute('data-tabla', capa.nombre_tabla);
                     layerItem.innerHTML = `
                         <div class="layer-icon" style="background-color: ${color};">
                             <i class="${icono}"></i>
                         </div>
                         <div class="layer-info">
-                            <div class="layer-name">${formatearNombre(capa)}</div>
+                            <div class="layer-name">${alias}</div>
                             <div class="layer-type">${tipoGeometria}</div>
                         </div>
                         <div class="layer-toggle"></div>
                     `;
                     
-                    layerItem.onclick = () => toggleCapa(capa);
+                    layerItem.onclick = () => toggleCapa(capa.nombre_tabla);
                     layersContainer.appendChild(layerItem);
+                    
+                    // Cargar automáticamente las capas con visible_por_defecto = true
+                    if (capa.visible_por_defecto) {
+                        setTimeout(() => toggleCapa(capa.nombre_tabla), 100);
+                    }
                 });
                 
+                console.log(`✅ Configuración de ${configCapasArray.length} capas cargada dinámicamente`);
+                
             } catch (err) {
-                status.textContent = '❌ Error de conexión: ' + err.message;
+                status.textContent = '❌ Error al cargar configuración: ' + err.message;
                 status.className = 'status-panel error';
-                console.error(err);
+                console.error('Error al cargar configuración de capas:', err);
             }
         }
 
-        // ===== FUNCIÓN: OBTENER TIPO DE GEOMETRÍA =====
+        // ===== FUNCIONES AUXILIARES MODIFICADAS PARA USAR CONFIGURACIÓN DINÁMICA =====
+
+        // ===== FUNCIÓN: OBTENER TIPO DE GEOMETRÍA (CON FALLBACK) =====
         function obtenerTipoGeometria(nombreTabla) {
+            // Primero intentar obtener de configCapas
+            if (configCapas[nombreTabla]) {
+                return configCapas[nombreTabla].tipo_geometria;
+            }
+            
+            // Fallback a la lógica original
             if (nombreTabla.includes('Localidades') || nombreTabla.includes('reportes') || nombreTabla.includes('propuestas')) {
                 return 'Punto';
             } else if (nombreTabla.includes('Zonificación') || nombreTabla.includes('San Francisco') || 
@@ -1883,8 +2251,14 @@
             return 'Desconocido';
         }
 
-        // ===== FUNCIÓN: OBTENER COLOR POR TIPO =====
-        function obtenerColorPorTipo(tipo) {
+        // ===== FUNCIÓN: OBTENER COLOR POR TIPO (CON FALLBACK) =====
+        function obtenerColorPorTipo(tipo, nombreTabla = null) {
+            // Si se proporciona nombreTabla y existe en configCapas, usar su color_hex
+            if (nombreTabla && configCapas[nombreTabla]) {
+                return configCapas[nombreTabla].color_hex;
+            }
+            
+            // Fallback a la lógica original por tipo
             switch(tipo) {
                 case 'Polígono': return '#3498db';
                 case 'Punto': return '#e74c3c';
@@ -1897,12 +2271,19 @@
             switch(tipo) {
                 case 'Polígono': return 'fas fa-vector-square';
                 case 'Punto': return 'fas fa-map-marker-alt';
+                case 'Línea': return 'fas fa-road';
                 default: return 'fas fa-question';
             }
         }
 
-        // ===== FUNCIÓN: FORMATEAR NOMBRE =====
+        // ===== FUNCIÓN: FORMATEAR NOMBRE (CON FALLBACK) =====
         function formatearNombre(nombre) {
+            // Primero intentar obtener alias de configCapas
+            if (configCapas[nombre]) {
+                return configCapas[nombre].alias;
+            }
+            
+            // Fallback a la lógica original
             const nombresEspeciales = {
                 'Localidades 1': 'Localidades',
                 'San Francisco_Mun': 'Municipio San Francisco',
@@ -1921,13 +2302,13 @@
                 .replace(/^\w/, c => c.toUpperCase());
         }
 
-        // ===== FUNCIÓN MEJORADA: TOGGLE CAPA (CON COLOR_HEX) =====
+        // ===== FUNCIÓN MODIFICADA: TOGGLE CAPA (USANDO CONFIGURACIÓN DINÁMICA) =====
         async function toggleCapa(nombreCapa) {
             const layerItems = document.querySelectorAll('.layer-item');
             let layerItem, toggle;
             
             for (let item of layerItems) {
-                if (item.querySelector('.layer-name').textContent === formatearNombre(nombreCapa)) {
+                if (item.getAttribute('data-tabla') === nombreCapa) {
                     layerItem = item;
                     toggle = item.querySelector('.layer-toggle');
                     break;
@@ -1990,12 +2371,13 @@
                     features: features
                 };
                 
-                const tipoGeometria = obtenerTipoGeometria(nombreCapa);
-                const colorBase = obtenerColorPorTipo(tipoGeometria);
+                const configCapa = configCapas[nombreCapa];
+                const tipoGeometria = configCapa ? configCapa.tipo_geometria : obtenerTipoGeometria(nombreCapa);
+                const colorBase = configCapa ? configCapa.color_hex : obtenerColorPorTipo(tipoGeometria);
                 
-                // ===== ESTILO MEJORADO QUE USA COLOR_HEX SI EXISTE =====
+                // ===== ESTILO MEJORADO QUE USA CONFIGURACIÓN DINÁMICA =====
                 const style = function(feature) {
-                    // Usar color_hex si existe, sino usar color base por tipo
+                    // Usar color_hex de la configuración o del feature, sino usar color base
                     const color = feature.properties.color_hex || colorBase;
                     return {
                         color: color,
@@ -2007,7 +2389,7 @@
                 };
                 
                 const pointToLayer = function(feature, latlng) {
-                    // Usar color_hex si existe, sino usar color base por tipo
+                    // Usar color_hex de la configuración o del feature, sino usar color base
                     const color = feature.properties.color_hex || colorBase;
                     return L.circleMarker(latlng, {
                         radius: 6,
@@ -2025,17 +2407,30 @@
                     onEachFeature: function(feature, layer) {
                         let contenidoPopup = `<strong>${formatearNombre(nombreCapa)}</strong><br><hr>`;
                         
-                        const propiedadesEspecificas = {
-                            'Localidades 1': ['nom_loc', 'nom_ent', 'nom_mun', 'pobtot'],
-                            'San Francisco_Mun': ['nomgeo', 'nom_ent'],
-                            'Usos de Suelo ': ['clas_bás', 'desc_cve', 'area', 'color_hex'],
-                            'Zonificación Primaria_': ['descripcio', 'codigo', 'área_ha'],
-                            'Colonias_SFR': ['nomcolonia']
-                        };
+                        // ===== NUEVA LÓGICA: Usar campos_popup de la configuración =====
+                        let camposPopup = [];
+                        if (configCapa && configCapa.campos_popup) {
+                            try {
+                                camposPopup = Array.isArray(configCapa.campos_popup) ? 
+                                    configCapa.campos_popup : JSON.parse(configCapa.campos_popup);
+                            } catch (e) {
+                                console.error('Error parseando campos_popup:', e);
+                                camposPopup = Object.keys(feature.properties).slice(0, 5);
+                            }
+                        } else {
+                            // Fallback a campos específicos por tabla o primeros 5 campos
+                            const propiedadesEspecificas = {
+                                'Localidades 1': ['nom_loc', 'nom_ent', 'nom_mun', 'pobtot'],
+                                'San Francisco_Mun': ['nomgeo', 'nom_ent'],
+                                'Usos de Suelo ': ['clas_bás', 'desc_cve', 'area', 'color_hex'],
+                                'Zonificación Primaria_': ['descripcio', 'codigo', 'área_ha'],
+                                'Colonias_SFR': ['nomcolonia']
+                            };
+                            
+                            camposPopup = propiedadesEspecificas[nombreCapa] || Object.keys(feature.properties).slice(0, 5);
+                        }
                         
-                        const propiedades = propiedadesEspecificas[nombreCapa] || Object.keys(feature.properties).slice(0, 5);
-                        
-                        propiedades.forEach(prop => {
+                        camposPopup.forEach(prop => {
                             if (feature.properties[prop] !== null && 
                                 feature.properties[prop] !== undefined) {
                                 contenidoPopup += `<strong>${prop}:</strong> ${feature.properties[prop]}<br>`;
@@ -2044,7 +2439,7 @@
                         
                         layer.bindPopup(contenidoPopup);
                         
-                        // ===== AGREGAR EVENTO DE CLIC PARA USOS DE SUELO =====
+                        // ===== MANTENER LÓGICA ESPECIAL PARA USOS DE SUELO =====
                         if (nombreCapa === 'Usos de Suelo ') {
                             layer.on('click', function(e) {
                                 e.originalEvent.preventDefault();
@@ -2074,7 +2469,7 @@
             }
         }
 
-        // ===== FUNCIÓN MEJORADA: ACTUALIZAR LEYENDA (CON CLASIFICACIÓN desc_cve Y SCROLL) =====
+        // ===== FUNCIÓN MEJORADA: ACTUALIZAR LEYENDA (USANDO CONFIGURACIÓN DINÁMICA) =====
         function actualizarLeyenda() {
             const leyenda = document.getElementById('legend');
             const leyendaContent = document.getElementById('legend-content');
@@ -2089,6 +2484,8 @@
             let totalItems = 0;
             
             capasActivas.forEach(capa => {
+                const configCapa = configCapas[capa];
+                
                 // Para la capa "Usos de Suelo", mostrar las clasificaciones de desc_cve con sus colores
                 if (capa === 'Usos de Suelo ') {
                     const geojson = capasCargadas[capa]?.toGeoJSON();
@@ -2098,7 +2495,8 @@
                         
                         geojson.features.forEach(feature => {
                             const clasificacion = feature.properties.desc_cve;
-                            const color = feature.properties.color_hex || obtenerColorPorTipo('Polígono');
+                            const color = feature.properties.color_hex || 
+                                         (configCapa ? configCapa.color_hex : obtenerColorPorTipo('Polígono'));
                             
                             if (clasificacion && !clasificaciones[clasificacion]) {
                                 clasificaciones[clasificacion] = color;
@@ -2125,13 +2523,14 @@
                     }
                 }
                 
-                // Para otras capas, usar el color por defecto
-                const tipo = obtenerTipoGeometria(capa);
-                const color = obtenerColorPorTipo(tipo);
+                // Para otras capas, usar el color de la configuración o por defecto
+                const color = configCapa ? configCapa.color_hex : obtenerColorPorTipo(obtenerTipoGeometria(capa));
+                const alias = configCapa ? configCapa.alias : formatearNombre(capa);
+                
                 contenidoLeyenda += `
                     <div class="legend-item">
                         <div class="legend-color" style="background-color:${color}"></div>
-                        <div class="legend-text">${formatearNombre(capa)}</div>
+                        <div class="legend-text">${alias}</div>
                     </div>
                 `;
                 totalItems++;
@@ -2239,6 +2638,27 @@
                     cerrarModalUsoSuelo();
                 }
             });
+            
+            // ===== EVENTOS PARA RESPONSIVIDAD =====
+            
+            // Botón FAB para abrir/cerrar sidebar
+            document.getElementById('fab').addEventListener('click', toggleSidebar);
+            
+            // Overlay para cerrar sidebar
+            document.getElementById('sidebar-overlay').addEventListener('click', toggleSidebar);
+            
+            // Toggle de la leyenda
+            document.getElementById('legend-toggle').addEventListener('click', toggleLeyenda);
+            
+            // Handle para bottom sheet en móviles
+            document.getElementById('bottom-sheet-handle').addEventListener('click', toggleBottomSheet);
+            
+            // Cerrar sidebar al hacer clic en "Seleccionar en Mapa"
+            document.getElementById('pick-on-map').addEventListener('click', function() {
+                if (isMobile && sidebarState !== 'closed') {
+                    toggleSidebar();
+                }
+            });
         }
 
         // ===== FUNCIONES AUXILIARES PARA SELECCIÓN DE UBICACIÓN =====
@@ -2268,12 +2688,12 @@
                     top: 10px;
                     left: 50%;
                     transform: translateX(-50%);
-                    background: rgba(31, 41, 55, 0.95);
+                    background: var(--surface);
                     color: white;
                     padding: 10px 20px;
                     border-radius: 8px;
                     z-index: 1000;
-                    border: 1px solid var(--primary);
+                    border: 1px solid var(--primary-light);
                     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
                     font-size: 14px;
                 `;
@@ -2310,6 +2730,9 @@
             
             // Mostrar modal
             document.getElementById('uso-suelo-modal').style.display = 'flex';
+            
+            // Enfocar el título del modal para accesibilidad
+            document.querySelector('.modal-title').focus();
         }
 
         function calcularCentroide(feature) {
@@ -2364,7 +2787,8 @@
                 'Zonificación Primaria_',
                 'Colonias_SFR',
                 'reportes_ciudadanos',
-                'propuestas_ciudadanas'
+                'propuestas_ciudadanas',
+                'capas_geoportal' // ===== NUEVA: Verificar también la tabla de configuración =====
             ];
             
             for (const tabla of tablas) {
