@@ -42,118 +42,63 @@
             background: var(--primary);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
+            padding: 0.75rem 2rem;
             position: sticky;
             top: 0;
             z-index: 1001;
         }
 
+        /* Contenedor del encabezado — definición única */
         .header-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 1.5rem;
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* Logo del geoportal */
+        /* Contenedor de logos — definición única */
         .logo {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1rem;
+            flex-shrink: 0;
         }
 
-        .logo i {
-            font-size: 2rem;
-            color: var(--light);
-        }
-
-        .logo h1 {
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 1.6rem; /* puedes dejar 1.5rem si te gusta más compacto */
-    letter-spacing: 0.5px;
-    text-transform: uppercase; /* quítalo si no quieres mayúsculas */
-    color: var(--light);
-}
-/* ===== Ajuste de logos y alineación del encabezado ===== */
-
-/* Contenedor del encabezado */
-.header-content {
-  display: flex;
-  justify-content: flex-start;   /* Alinea a la izquierda */
-  align-items: center;
-  gap: 2rem;                     /* Espacio entre logo y buscador */
-  max-width: 1400px;
-  margin: 0 auto;
-  padding-left: 1rem;            /* empuje hacia la izquierda */
-}
-
-/* Contenedor de los logos */
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 1rem;                     /* más espacio entre los logos */
-}
-
-/* Logo ODS 17 — más grande y circular */
+/* Logo ODS 17 */
 .logo-ods {
-  height: 60px;                  /* más grande */
-  width: 60px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: none;
-  box-shadow: none;
-  transition: transform 0.3s ease;
+    height: 52px;
+    width: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: none;
+    box-shadow: none;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
 }
 
 .logo-ods:hover {
-  transform: scale(1.08);
+    transform: scale(1.08);
 }
 
 /* Logo IMPLAN */
 .logo-implan {
-  height: 48px;
-  border-radius: 6px;
-}
-
-/* Texto principal */
-.logo h1 {
-  margin: 0 0.25rem;
-  line-height: 1;
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 700;
-  font-size: 2rem; /* un poco más grande */
-  letter-spacing: 1px;
-  color: var(--light);
-}
-
-/* ===== Ajustes responsivos ===== */
-@media (max-width: 1024px) {
-  .logo-ods {
-    height: 50px;
-    width: 50px;
-  }
-  .logo-implan {
     height: 42px;
-  }
-  .logo h1 {
-    font-size: 1.6rem;
-  }
+    border-radius: 6px;
+    flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
-  .header-content {
-    justify-content: space-between; /* en móvil, que el buscador se mantenga separado */
-    padding-left: 0.5rem;
-  }
-  .logo-ods {
-    height: 40px;
-    width: 40px;
-  }
-  .logo h1 {
-    font-size: 1.3rem;
-  }
+/* Título del geoportal */
+.logo h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1.75rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--light);
+    line-height: 1;
+    white-space: nowrap;
 }
 
         /* Barra de búsqueda */
@@ -518,6 +463,35 @@
             background: var(--surface-hover);
             transform: translateY(-2px);
             box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Botón Obtener Mi Ubicación */
+        .btn-location {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-location:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: #10b981;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-location:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-location.locating {
+            animation: pulse-location 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-location {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
         }
 
         .btn-set {
@@ -964,36 +938,39 @@
             color: var(--light);
         }
 
-        .fa:hover, .fas:hover, .far:hover, .fal:hover, .fab:hover {
-            color: var(--gray);
-        }
-
         /* ===== ELEMENTOS RESPONSIVOS ADICIONALES ===== */
-        
-        /* Botón FAB para móviles */
-        .fab {
+
+        /* Botón FAB para móviles (renombrado a fab-menu para evitar conflicto con Font Awesome) */
+        .fab-menu {
             position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 60px;
-            height: 60px;
+            bottom: 24px;
+            left: 24px;
+            width: 56px;
+            height: 56px;
             background: var(--primary);
             border-radius: 50%;
-            display: flex;
+            display: none; /* oculto por defecto en desktop */
             align-items: center;
             justify-content: center;
             color: var(--light);
-            font-size: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            font-size: 1.4rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
             z-index: 1002;
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .fab:hover {
+        .fab-menu:hover {
             background: var(--primary-dark);
-            transform: scale(1.1);
+            transform: scale(1.08);
+        }
+
+        /* Botón de ubicación en mapa — estado activo */
+        .control-btn.locating {
+            color: #10b981;
+            border-color: #10b981;
+            animation: pulse-location 1.5s ease-in-out infinite;
         }
 
         /* Overlay para cerrar sidebar en móviles */
@@ -1010,17 +987,22 @@
 
         /* Handle para bottom sheet */
         .bottom-sheet-handle {
-            width: 40px;
-            height: 4px;
-            background: var(--border);
-            border-radius: 2px;
-            margin: 0 auto 1rem;
+            width: 44px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 3px;
+            margin: 0.25rem auto 1rem;
             cursor: grab;
+            transition: background 0.2s;
+        }
+
+        .bottom-sheet-handle:hover {
+            background: rgba(255, 255, 255, 0.45);
         }
 
         /* ===== MEDIA QUERIES PARA RESPONSIVIDAD ===== */
-        
-        /* Tablets y pantallas pequeñas */
+
+        /* Tablets y pantallas medianas */
         @media (max-width: 1024px) {
             .sidebar {
                 position: fixed;
@@ -1029,145 +1011,183 @@
                 height: 100%;
                 transform: translateX(-100%);
                 z-index: 1000;
-                width: 400px;
-                max-width: 90vw;
-                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
+                width: 380px;
+                max-width: 88vw;
+                box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
             }
-            
+
             .sidebar.open {
                 transform: translateX(0);
             }
-            
-            .fab {
+
+            .fab-menu {
                 display: flex;
             }
-            
+
             .header-content {
-                flex-wrap: wrap;
-                gap: 1rem;
+                flex-wrap: nowrap; /* evita que buscador baje a segunda fila */
             }
-            
+
             .search-container {
-                width: 100%;
-                order: 3;
+                width: 220px; /* reducir en tablet */
+                flex-shrink: 1;
             }
         }
 
         /* Móviles */
         @media (max-width: 768px) {
             .header {
-                padding: 1rem;
+                padding: 0.6rem 1rem;
             }
-            
+
+            .logo-ods {
+                height: 38px;
+                width: 38px;
+            }
+
+            .logo-implan {
+                height: 34px;
+            }
+
             .logo h1 {
-                font-size: 1.25rem;
+                font-size: 1.1rem;
+                letter-spacing: 0.5px;
             }
-            
+
+            .search-container {
+                width: 160px;
+            }
+
             .search-input {
-                font-size: 16px; /* Evita zoom en iOS */
+                font-size: 16px; /* evita zoom en iOS */
+                padding: 0.6rem 0.75rem;
             }
-            
+
             .sidebar {
                 width: 100%;
                 max-width: 100%;
-                height: 70%;
+                height: 72%;
                 top: auto;
                 bottom: 0;
                 transform: translateY(100%);
                 border-radius: 20px 20px 0 0;
                 border-right: none;
                 border-bottom: none;
+                padding-top: 0.5rem;
             }
-            
+
             .sidebar.open {
                 transform: translateY(0);
             }
-            
+
             .sidebar.expanded {
-                height: 90%;
+                height: 92%;
             }
-            
+
             .sidebar.collapsed {
-                height: 10%;
+                height: 8%;
+                overflow: hidden;
             }
-            
+
+            /* Controles del mapa: ajustar debajo del header real */
             .map-controls {
-                top: 80px; /* Evita solapar con el header */
+                top: 70px;
                 right: 10px;
+                gap: 0.5rem;
             }
-            
+
+            .control-btn {
+                width: 42px;
+                height: 42px;
+                border-radius: 10px;
+            }
+
+            /* Leyenda: que no se solape con controles del mapa */
             .legend {
                 right: 10px;
-                bottom: 10px;
-                max-width: calc(100vw - 20px);
+                bottom: 80px; /* espacio para el FAB */
+                max-width: min(220px, calc(100vw - 20px));
+                max-height: 240px;
             }
-            
+
             .info-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .modal-container {
-                padding: 1.5rem;
+                padding: 1.25rem;
+            }
+
+            /* Botones de coordenadas apilados correctamente */
+            .coords-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
             }
         }
 
         /* Pantallas muy pequeñas */
         @media (max-width: 480px) {
             .header {
-                padding: 0.75rem;
+                padding: 0.5rem 0.75rem;
             }
-            
+
+            .logo-implan {
+                display: none; /* ocultar logo IMPLAN en pantallas muy pequeñas */
+            }
+
             .logo h1 {
-                font-size: 1.1rem;
+                font-size: 1rem;
             }
-            
-            .logo i {
-                font-size: 1.5rem;
+
+            .search-container {
+                width: 130px;
             }
-            
+
             .panel-body {
                 padding: 1rem;
             }
-            
+
             .basemap-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
             }
-            
+
             .modal-container {
                 padding: 1rem;
             }
-            
+
             .modal-footer {
                 flex-direction: column;
             }
-            
+
             .btn-modal {
                 width: 100%;
             }
+
+            .legend {
+                bottom: 90px;
+                max-height: 200px;
+            }
         }
 
-        /* Accesibilidad: mejorar contraste en modo de alto contraste */
+        /* Accesibilidad: modo de alto contraste */
         @media (prefers-contrast: high) {
             .panel {
                 border: 2px solid var(--light);
             }
-            
+
             .control-btn, .btn {
                 border: 2px solid var(--light);
             }
         }
 
-        /* Mejoras para dispositivos táctiles */
+        /* Dispositivos táctiles: eliminar hover animations */
         @media (hover: none) and (pointer: coarse) {
-            .panel:hover {
-                transform: none;
-            }
-            
-            .control-btn:hover, .btn:hover {
-                transform: none;
-            }
-            
-            .layer-item:hover, .basemap-item:hover {
+            .panel:hover,
+            .control-btn:hover,
+            .btn:hover,
+            .layer-item:hover,
+            .basemap-item:hover {
                 transform: none;
             }
         }
@@ -1262,6 +1282,10 @@
                                 </div>
                                 
                                 <div class="coords-actions">
+                                    <button type="button" id="get-my-location" class="btn btn-location">
+                                        <i class="fas fa-location-arrow"></i>
+                                        Mi Ubicación (GPS)
+                                    </button>
                                     <button type="button" id="pick-on-map" class="btn btn-map">
                                         <i class="fas fa-map-pin"></i>
                                         Seleccionar en Mapa
@@ -1308,6 +1332,9 @@
             
             <!-- CONTROLES DEL MAPA -->
             <div class="map-controls">
+                <button class="control-btn" id="map-locate-btn" title="Ir a mi ubicación" onclick="obtenerMiUbicacion()">
+                    <i class="fas fa-location-arrow"></i>
+                </button>
                 <button class="control-btn" title="Zoom al alcance total" onclick="zoomToAll()">
                     <i class="fas fa-expand"></i>
                 </button>
@@ -1338,7 +1365,7 @@
     </div>
 
     <!-- Botón FAB para abrir sidebar en móviles -->
-    <button class="fab" id="fab" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
+    <button class="fab-menu" id="fab" aria-label="Abrir menú" aria-expanded="false" aria-controls="sidebar">
         <i class="fas fa-bars"></i>
     </button>
 
@@ -1977,6 +2004,107 @@
             }
         }
 
+        // ===== FUNCIÓN: OBTENER MI UBICACIÓN (GPS / OFFLINE) =====
+        function obtenerMiUbicacion() {
+            // Verificar si el navegador soporta geolocalización
+            if (!navigator.geolocation) {
+                mostrarEstado('Tu navegador no soporta geolocalización.', 'error');
+                return;
+            }
+
+            const btnForm = document.getElementById('get-my-location');
+            const btnMap  = document.getElementById('map-locate-btn');
+
+            // Estado de carga
+            function setLoading(on) {
+                if (btnForm) {
+                    btnForm.disabled = on;
+                    btnForm.classList.toggle('locating', on);
+                    btnForm.innerHTML = on
+                        ? '<i class="fas fa-spinner fa-spin"></i> Obteniendo ubicación...'
+                        : '<i class="fas fa-location-arrow"></i> Mi Ubicación (GPS)';
+                }
+                if (btnMap) {
+                    btnMap.classList.toggle('locating', on);
+                    btnMap.title = on ? 'Obteniendo ubicación...' : 'Ir a mi ubicación';
+                }
+            }
+
+            setLoading(true);
+            mostrarEstado('Obteniendo tu ubicación...', '');
+
+            navigator.geolocation.getCurrentPosition(
+                // Éxito
+                function(posicion) {
+                    setLoading(false);
+
+                    const lat = posicion.coords.latitude;
+                    const lng = posicion.coords.longitude;
+                    const precision = posicion.coords.accuracy; // metros
+
+                    // Establecer ubicación en el formulario y el mapa
+                    establecerUbicacion(lat, lng);
+
+                    // Mostrar círculo de precisión
+                    if (window._accuracyCircle) {
+                        map.removeLayer(window._accuracyCircle);
+                    }
+                    window._accuracyCircle = L.circle([lat, lng], {
+                        radius: precision,
+                        color: '#10b981',
+                        fillColor: '#10b981',
+                        fillOpacity: 0.08,
+                        weight: 1.5,
+                        dashArray: '6 4'
+                    }).addTo(map);
+
+                    // Ajustar zoom para incluir el círculo de precisión
+                    map.fitBounds(window._accuracyCircle.getBounds(), { maxZoom: 18, padding: [30, 30] });
+
+                    const precisionTexto = precision < 50
+                        ? `Alta precisión (±${Math.round(precision)} m)`
+                        : precision < 200
+                            ? `Precisión media (±${Math.round(precision)} m)`
+                            : `Precisión baja (±${Math.round(precision)} m) — activa el GPS para mejorar`;
+
+                    mostrarEstado(`Ubicación obtenida. ${precisionTexto}`, 'success');
+                },
+                // Error
+                function(error) {
+                    setLoading(false);
+                    let mensaje;
+                    switch (error.code) {
+                        case error.PERMISSION_DENIED:
+                            mensaje = 'Permiso de ubicación denegado. Activa el permiso en la configuración del navegador.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            mensaje = 'Ubicación no disponible. Activa el GPS o revisa tu conexión.';
+                            break;
+                        case error.TIMEOUT:
+                            mensaje = 'Tiempo de espera agotado. Intenta de nuevo.';
+                            break;
+                        default:
+                            mensaje = 'No se pudo obtener tu ubicación.';
+                    }
+                    mostrarEstado(mensaje, 'error');
+                },
+                // Opciones
+                {
+                    enableHighAccuracy: true,  // Solicita GPS en móviles
+                    timeout: 15000,            // 15 segundos máximo
+                    maximumAge: 30000          // Acepta caché de hasta 30 s
+                }
+            );
+        }
+
+        // ===== FUNCIÓN AUXILIAR: MOSTRAR ESTADO EN PANEL =====
+        function mostrarEstado(mensaje, tipo) {
+            const status = document.getElementById('status');
+            if (!status) return;
+            status.textContent = mensaje;
+            status.className = 'status-panel' + (tipo ? ' ' + tipo : '');
+        }
+
         // ===== FUNCIÓN: ESTABLECER UBICACIÓN =====
         function establecerUbicacion(lat, lng) {
             selectedLocation = { lat, lng };
@@ -2593,6 +2721,10 @@
             });
 
             // Eventos para formulario de reportes
+            document.getElementById('get-my-location').addEventListener('click', function() {
+                obtenerMiUbicacion();
+            });
+
             document.getElementById('pick-on-map').addEventListener('click', function() {
                 activarSeleccionUbicacion();
             });
