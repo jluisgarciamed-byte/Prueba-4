@@ -164,8 +164,9 @@ button{cursor:pointer;}
 .leaflet-control-attribution a{color:var(--texto-medio)!important;}
 .leaflet-control-scale-line{background:rgba(11,42,39,.75);border-color:var(--linea);color:var(--texto-medio);}
 
-.mapa-barra{position:absolute;top:9px;left:9px;z-index:520;display:flex;gap:5px;flex-wrap:wrap;
-  max-width:calc(100% - 120px);}
+/* Se corre a la derecha del control de zoom de Leaflet, que ocupa la esquina. */
+.mapa-barra{position:absolute;top:9px;left:58px;z-index:520;display:flex;gap:5px;flex-wrap:wrap;
+  max-width:calc(100% - 190px);}
 .mapa-barra .btn{background:rgba(15,59,56,.94);backdrop-filter:blur(6px);box-shadow:var(--sombra);}
 .mapa-der{position:absolute;top:9px;right:9px;z-index:520;display:flex;flex-direction:column;gap:5px;
   align-items:flex-end;}
@@ -317,17 +318,22 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
 .prob-fila .cod{display:block;margin-top:1px;}
 
 /* ---------- Espacios institucionales ---------- */
-.logo-slot{display:flex;align-items:center;justify-content:center;flex:0 0 auto;height:40px;}
+.logo-slot{display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
 .logo-slot:empty{display:none;}
-.logo-slot img{max-height:40px;max-width:150px;object-fit:contain;display:block;}
-.logo-hueco{border:1px dashed var(--linea);border-radius:6px;height:40px;min-width:74px;
+/* Mismo tratamiento que el encabezado del geoportal: ODS en círculo, IMPLAN
+   rectangular con esquina suave, y el nombre del tablero enseguida. */
+#slot-ods img{height:46px;width:46px;border-radius:50%;object-fit:cover;display:block;
+  transition:transform .3s ease;}
+#slot-ods img:hover{transform:scale(1.08);}
+#slot-implan img{height:38px;width:auto;max-width:150px;border-radius:6px;object-fit:contain;display:block;}
+.logo-hueco{border:1px dashed var(--linea);height:38px;min-width:74px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 10px;
   font-family:var(--mono);font-size:8.5px;letter-spacing:.7px;text-transform:uppercase;
-  color:var(--texto-tenue);text-align:center;line-height:1.3;}
+  color:var(--texto-tenue);text-align:center;line-height:1.3;border-radius:6px;}
+#slot-ods .logo-hueco{width:46px;height:46px;min-width:46px;border-radius:50%;padding:0;}
 .logo-hueco b{font-size:9.5px;font-weight:600;color:var(--texto-medio);letter-spacing:.5px;}
-.franja-impresion{display:none;}
 @media (max-width:1240px){ .logo-hueco{display:none;} }
-@media (max-width:860px){ #slot-gobierno,#slot-ods{display:none;} .logo-slot img{max-height:30px;max-width:96px;} }
+@media (max-width:860px){ #slot-ods img{height:32px;width:32px;} #slot-implan img{height:26px;} }
 
 @media (max-width:1240px){
   :root{--rail-izq:262px;--rail-der:0px;}
@@ -374,8 +380,8 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
 
   <header class="barra">
     <button class="btn chico abrir-riel" id="btn-filtros-movil" aria-label="Abrir filtros">Filtros</button>
+    <div class="logo-slot" id="slot-ods"></div>
     <div class="logo-slot" id="slot-implan"></div>
-    <div class="logo-slot" id="slot-gobierno"></div>
     <div class="marca">
       <b>Participación ciudadana</b>
       <span>PMDUOET 2050 · IMPLAN SFR</span>
@@ -391,7 +397,6 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
       <button class="btn chico" id="btn-recargar" title="Vuelve a leer la base de datos">Actualizar</button>
       <button class="btn chico pri" id="btn-exportar">Exportar</button>
     </div>
-    <div class="logo-slot" id="slot-ods"></div>
   </header>
 
   <!-- ================= RIEL IZQUIERDO: FILTROS ================= -->
@@ -414,7 +419,7 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
         <button class="btn chico" data-modo="cluster" aria-pressed="false">Agrupado</button>
         <button class="btn chico" data-modo="calor" aria-pressed="false">Calor</button>
         <button class="btn chico" data-modo="coropleta" aria-pressed="false">Por colonia</button>
-        <button class="btn chico" id="btn-vacios" aria-pressed="false" title="Colonias del padrón sin ninguna respuesta">Vacíos</button>
+        <button class="btn chico" id="btn-vacios" aria-pressed="false" title="Colonias y comunidades del padrón sin ninguna respuesta">Vacíos</button>
       </div>
 
       <div class="mapa-der">
@@ -450,9 +455,9 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
     <div class="riel-cab">
       <h2 id="der-titulo">Tops</h2>
       <select class="selec" id="der-metrica" title="Métrica de los tops">
-        <option value="menciones">Menciones</option>
-        <option value="personas">Personas</option>
-        <option value="ipp">Índice de prioridad</option>
+        <option value="menciones" title="Veces que se marcó">Menciones</option>
+        <option value="personas" title="Personas distintas detrás del dato">Personas</option>
+        <option value="ipp" title="Peso de gravedad: 3, 2 y 1 puntos según el orden que le dio la persona">Índice de prioridad</option>
       </select>
     </div>
     <div class="riel-cuerpo" id="riel-der-cuerpo"></div>
@@ -500,9 +505,8 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
    para que se vea dónde va y el tablero no se descuadre.
    --------------------------------------------------------------------------- */
 const LOGOS = {
-  implan:   { archivo:'logo_implan.png',   etiqueta:'IMPLAN',  pie:'San Francisco del Rincón' },
-  gobierno: { archivo:'logo_gobierno.png', etiqueta:'Gobierno', pie:'Municipal' },
-  ods:      { archivo:'logo_ods.png',      etiqueta:'ODS',     pie:'Agenda 2030' }
+  ods:    { archivo:'ODS17.png',                 etiqueta:'ODS 17', pie:'' },
+  implan: { archivo:'LOGOTIPOGRISIMPLAN.png',    etiqueta:'IMPLAN', pie:'San Francisco del Rincón' }
 };
 
 function montarLogos() {
@@ -876,14 +880,14 @@ async function cargarTodo() {
      localidad = rural. Es el corte que exige el enfoque diferenciado. */
   estado.problemas.forEach(f => {
     const n = norm(f.colonia);
-    f.asentamiento = estado.nombresColonia.has(n) ? 'Colonia (urbano)'
-                   : estado.nombresLocalidad.has(n) ? 'Localidad (rural)'
+    f.asentamiento = estado.nombresColonia.has(n) ? 'Colonia (urbana)'
+                   : estado.nombresLocalidad.has(n) ? 'Comunidad (rural)'
                    : 'Sin clasificar';
   });
   estado.participaciones.forEach(p => {
     const n = norm(p.colonia_comunidad || p.colonia_oficial);
-    p._asentamiento = estado.nombresColonia.has(n) ? 'Colonia (urbano)'
-                    : estado.nombresLocalidad.has(n) ? 'Localidad (rural)'
+    p._asentamiento = estado.nombresColonia.has(n) ? 'Colonia (urbana)'
+                    : estado.nombresLocalidad.has(n) ? 'Comunidad (rural)'
                     : 'Sin clasificar';
   });
 }
@@ -1486,7 +1490,7 @@ function pintarVacios() {
     .map(c => ({ type:'Feature', geometry:c.geometry, properties:{ nombre:c.nombre } }));
   if (!feats.length) return;
   capaVacios = L.geoJSON({ type:'FeatureCollection', features:feats }, {
-    style: { color:'#f87171', weight:1.5, dashArray:'4 3', fillColor:'#f87171', fillOpacity:.13 },
+    style: { color:'#ef4444', weight:1.5, dashArray:'4 3', fillColor:'#ef4444', fillOpacity:.13 },
     onEachFeature: (f, c) => c.bindPopup(`<b>${esc(f.properties.nombre)}</b><br>
       <span style="color:var(--texto-medio)">Sin ninguna respuesta registrada.</span>`)
   }).addTo(mapa);
@@ -1519,7 +1523,7 @@ function pintarLeyenda(modo, filas) {
         El punto grande es un problema priorizado</div>`;
   }
   if (mostrarVacios) html += `<div class="ley-fila" style="margin-top:5px;">
-    <span class="ley-caja" style="background:rgba(248,113,113,.35);border-color:#f87171"></span>Colonia sin respuestas</div>`;
+    <span class="ley-caja" style="background:rgba(239,68,68,.35);border-color:#ef4444"></span>Sin respuestas</div>`;
   l.innerHTML = html;
 }
 
@@ -1575,21 +1579,27 @@ function alClicarBarra(dim, etiquetas) {
 function pintarKPIs() {
   const filas = filtrado();
   const personas = new Set(filas.map(f => f.idMadre)).size;
-  const colonias = new Set(filas.map(f => norm(f.colonia))).size;
   const amb = filas.filter(f => f.agenda === 'Ambiental').length;
   const priorizados = filas.filter(f => f.orden).length;
-  const conGeo = filas.filter(f => f.lat != null).length;
-  const padron = estado.colonias.length + estado.localidades.length;
+
+  /* Colonias y comunidades se cuentan por separado: son dos universos distintos
+     del padrón y mezclarlos escondía el avance real en el medio rural. */
+  const urbanas = new Set(filas.filter(f => f.asentamiento === 'Colonia (urbana)')
+    .map(f => norm(f.colonia))).size;
+  const rurales = new Set(filas.filter(f => f.asentamiento === 'Comunidad (rural)')
+    .map(f => norm(f.colonia))).size;
+  const deTotal = (n, total) => num(n) +
+    (total ? ` <span style="font-size:11px;color:var(--texto-tenue)">/ ${num(total)}</span>` : '');
 
   const k = [
     ['Cuestionarios', num(personas), ''],
     ['Problemas señalados', num(filas.length), 'ac'],
     ['Ambiental', num(amb), 'amb'],
     ['Territorial', num(filas.length - amb), 'ter'],
-    ['Colonias con voz', num(colonias) + (padron ? ` <span style="font-size:11px;color:var(--texto-tenue)">/ ${num(padron)}</span>` : ''), ''],
+    ['Colonias con voz', deTotal(urbanas, estado.colonias.length), ''],
+    ['Comunidades con voz', deTotal(rurales, estado.localidades.length), ''],
     ['Problemas por persona', personas ? (filas.length / personas).toFixed(1) : '—', ''],
-    ['Priorizados', pct(priorizados, filas.length), ''],
-    ['Con ubicación', pct(conGeo, filas.length), '']
+    ['Priorizados', pct(priorizados, filas.length), '']
   ];
   document.getElementById('kpis').innerHTML = k.map(([et, v, cls]) =>
     `<div class="kpi ${cls}"><div class="v">${v}</div><div class="k">${et}</div></div>`).join('');
@@ -1604,8 +1614,8 @@ function armarPaneles() {
       <div class="tarjeta ancha">
         <div class="tarjeta-cab">
           <div><h3>Problemas más señalados</h3>
-            <p class="sub">Clic en una barra para filtrar todo el tablero. Color por agenda.</p></div>
-          <select class="selec" id="sel-top-metrica">
+            <p class="sub" id="sub-top-metrica"></p></div>
+          <select class="selec" id="sel-top-metrica" title="Cambia lo que mide la barra">
             <option value="menciones">Por menciones</option>
             <option value="personas">Por personas distintas</option>
             <option value="ipp">Por índice de prioridad</option>
@@ -1629,9 +1639,9 @@ function armarPaneles() {
         <div class="lienzo"><canvas id="g-agenda"></canvas></div>
       </div>
       <div class="tarjeta">
-        <h3>Urbano y rural</h3>
-        <p class="sub">Perfil temático comparado. Cada barra es el porcentaje de las
-           menciones de ese asentamiento que cayó en el tema.</p>
+        <h3>Colonias y comunidades</h3>
+        <p class="sub">Perfil temático comparado. Cada eje es el porcentaje de las
+           menciones de ese tipo de asentamiento que cayó en el tema.</p>
         <div class="lienzo"><canvas id="g-urbano-rural"></canvas></div>
       </div>
     </div>
@@ -1652,9 +1662,9 @@ function armarPaneles() {
         <select class="selec" id="cr-col"></select>
         <label style="color:var(--texto-tenue);font-size:11px;">Métrica</label>
         <select class="selec" id="cr-metrica">
-          <option value="menciones">Menciones</option>
-          <option value="personas">Personas distintas</option>
-          <option value="ipp">Índice de prioridad</option>
+          <option value="menciones" title="Veces que se marcó">Menciones</option>
+          <option value="personas" title="Personas distintas detrás del dato">Personas distintas</option>
+          <option value="ipp" title="Peso de gravedad: 3, 2 y 1 puntos según el orden que le dio la persona">Índice de prioridad</option>
         </select>
         <label style="color:var(--texto-tenue);font-size:11px;">Ver</label>
         <select class="selec" id="cr-modo">
@@ -1761,7 +1771,8 @@ function armarPaneles() {
       </div>
       <div class="tarjeta">
         <h3>Cobertura del levantamiento</h3>
-        <p class="sub">Padrón cubierto frente a padrón pendiente.</p>
+        <p class="sub">Padrón cubierto frente a padrón pendiente, separando colonias de
+           comunidades rurales.</p>
         <div class="lienzo"><canvas id="g-cobertura"></canvas></div>
         <div id="lista-vacios"></div>
       </div>
@@ -1921,6 +1932,14 @@ function refrescarPanel(cual) {
 function pintarPanorama() {
   const filas = filtrado();
   const m = document.getElementById('sel-top-metrica').value;
+
+  /* La métrica cambia el sentido de la gráfica, no solo su escala: se explica
+     en una línea para que nadie lea "menciones" como si fueran personas. */
+  document.getElementById('sub-top-metrica').innerHTML = {
+    menciones:'Cuántas veces se marcó cada problema. Mide qué tan extendido está. Clic en una barra para filtrar todo el tablero.',
+    personas:'Cuántas personas distintas lo señalaron. Mide a cuánta gente respalda el dato, sin que quien marcó muchos problemas pese de más.',
+    ipp:'Suma de los problemas que la gente puso entre los tres más graves: 3 puntos al primero, 2 al segundo, 1 al tercero. Mide gravedad, no frecuencia.'
+  }[m];
 
   const av = document.getElementById('avisos');
   av.innerHTML = estado.avisos.map(a => `<div class="aviso">${a}</div>`).join('');
@@ -2245,7 +2264,7 @@ function pintarTerritorio() {
   const locsCubiertas = estado.localidades.filter(l => conDatos.has(norm(l.nombre))).length;
   pintar('g-cobertura', {
     type:'bar',
-    data:{ labels:['Colonias','Localidades'], datasets:[
+    data:{ labels:['Colonias','Comunidades'], datasets:[
       { label:'Con respuestas', backgroundColor:'#10b981', borderRadius:3,
         data:[colsCubiertas, locsCubiertas] },
       { label:'Sin respuestas', backgroundColor:NEUTRO, borderRadius:3,
