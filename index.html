@@ -53,7 +53,7 @@
   --sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --display:'Rajdhani',system-ui,sans-serif;
   --rail-izq:298px;
-  --rail-der:326px;
+  --rail-der:470px;
 }
 
 *{box-sizing:border-box;}
@@ -108,6 +108,35 @@ button{cursor:pointer;}
 .riel{background:var(--panel);border-right:1px solid var(--linea);
   display:flex;flex-direction:column;min-height:0;}
 .riel.der{border-right:none;border-left:1px solid var(--linea);}
+
+/* Los rieles se pliegan a una cinta de 26 px que conserva el acceso sin
+   robarle ancho al mapa. Debajo de 1240 px ya hay cajones deslizables, así que
+   el plegado se desactiva para no pelearse con ellos. */
+@media (min-width:1361px){
+  .app.sin-izq{grid-template-columns:26px minmax(0,1fr) var(--rail-der);}
+  .app.sin-der{grid-template-columns:var(--rail-izq) minmax(0,1fr) 26px;}
+  .app.sin-izq.sin-der{grid-template-columns:26px minmax(0,1fr) 26px;}
+}
+@media (max-width:1360px){ .plegar,.cinta{display:none!important;} .riel.plegado>*{display:revert;} }
+.riel.plegado>*{display:none;}
+.riel.plegado{align-items:center;padding-top:9px;}
+.cinta{display:none;background:none;border:none;color:var(--texto-tenue);padding:8px 0;
+  writing-mode:vertical-rl;font-family:var(--display);font-size:12px;font-weight:700;
+  letter-spacing:1.4px;text-transform:uppercase;white-space:nowrap;}
+.cinta:hover{color:var(--acento);}
+.riel.plegado .cinta{display:block;}
+.plegar{background:none;border:none;color:var(--texto-tenue);font-size:14px;line-height:1;
+  padding:2px 5px;border-radius:4px;}
+.plegar:hover{background:var(--panel-2);color:var(--texto);}
+
+/* Vistas rápidas: reparto del alto entre mapa y análisis. */
+.vistas{margin-left:auto;display:flex;gap:2px;padding:4px 4px 4px 10px;flex:0 0 auto;
+  align-items:center;}
+.vistas button{background:none;border:1px solid transparent;border-radius:5px;padding:4px 9px;
+  color:var(--texto-tenue);font-size:11px;font-weight:600;white-space:nowrap;}
+.vistas button:hover{color:var(--texto-medio);}
+.vistas button[aria-pressed="true"]{background:var(--acento-hueco);border-color:var(--acento);
+  color:var(--acento);}
 .riel-cab{padding:9px 13px;border-bottom:1px solid var(--linea);display:flex;
   align-items:center;justify-content:space-between;gap:8px;flex:0 0 auto;}
 .riel-cab h2{margin:0;font-family:var(--display);font-size:14px;text-transform:uppercase;
@@ -148,8 +177,19 @@ button{cursor:pointer;}
 
 /* ---------- Centro ---------- */
 .centro{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--fondo);}
-.mapa-caja{position:relative;flex:0 0 var(--alto-mapa,54%);min-height:230px;
-  border-bottom:1px solid var(--linea);}
+.mapa-caja{position:relative;flex:0 0 54%;min-height:0;}
+.mapa-caja.oculta{flex:0 0 0;min-height:0;overflow:hidden;border:none;}
+
+/* Divisor arrastrable entre el mapa y el área de análisis. */
+.divisor{flex:0 0 9px;background:var(--panel);border-top:1px solid var(--linea);
+  border-bottom:1px solid var(--linea);cursor:row-resize;display:flex;align-items:center;
+  justify-content:center;position:relative;z-index:530;}
+.divisor::before{content:'';width:46px;height:3px;border-radius:3px;background:var(--linea);
+  transition:background .12s;}
+.divisor:hover::before{background:var(--acento);}
+.divisor.oculto{display:none;}
+body.redimensionando{cursor:row-resize;user-select:none;}
+body.redimensionando iframe,body.redimensionando .leaflet-container{pointer-events:none;}
 #mapa{position:absolute;inset:0;background:#08201E;}
 .leaflet-container{font-family:var(--sans);background:#08201E;}
 .leaflet-popup-content-wrapper{background:var(--panel);color:var(--texto);border-radius:7px;
@@ -164,18 +204,56 @@ button{cursor:pointer;}
 .leaflet-control-attribution a{color:var(--texto-medio)!important;}
 .leaflet-control-scale-line{background:rgba(11,42,39,.75);border-color:var(--linea);color:var(--texto-medio);}
 
-/* Se corre a la derecha del control de zoom de Leaflet, que ocupa la esquina. */
-.mapa-barra{position:absolute;top:9px;left:58px;z-index:520;display:flex;gap:5px;flex-wrap:wrap;
-  max-width:calc(100% - 190px);}
-.mapa-barra .btn{background:rgba(15,59,56,.94);backdrop-filter:blur(6px);box-shadow:var(--sombra);}
-.mapa-der{position:absolute;top:9px;right:9px;z-index:520;display:flex;flex-direction:column;gap:5px;
-  align-items:flex-end;}
+/* Control segmentado de modos: una sola pieza compacta a la derecha del zoom. */
+.modos{position:absolute;top:9px;left:56px;z-index:520;display:flex;flex-wrap:wrap;
+  max-width:calc(100% - 232px);
+  background:rgba(15,59,56,.94);backdrop-filter:blur(6px);border:1px solid var(--linea);
+  border-radius:7px;box-shadow:var(--sombra);overflow:hidden;}
+.modos button{background:none;border:none;border-right:1px solid var(--linea);padding:6px 11px;
+  color:var(--texto-medio);font-size:11.5px;font-weight:500;white-space:nowrap;}
+.modos button:last-child{border-right:none;}
+.modos button:hover{background:var(--panel-3);color:var(--texto);}
+.modos button[aria-pressed="true"]{background:var(--acento);color:#06251F;font-weight:600;}
+
+/* Un solo botón abre capas base, capas de referencia y herramientas. */
+.mapa-der{position:absolute;top:9px;right:9px;z-index:540;display:flex;flex-direction:column;
+  gap:6px;align-items:flex-end;max-width:calc(100% - 20px);}
 .mapa-der .btn{background:rgba(15,59,56,.94);backdrop-filter:blur(6px);box-shadow:var(--sombra);}
-.leyenda{position:absolute;bottom:22px;left:9px;z-index:520;background:rgba(15,59,56,.95);
+.panel-mapa{display:none;width:262px;max-height:min(460px,calc(100% - 20px));overflow-y:auto;
+  background:rgba(15,59,56,.97);backdrop-filter:blur(10px);border:1px solid var(--linea);
+  border-radius:var(--radio);box-shadow:var(--sombra);padding:10px 12px 12px;}
+.panel-mapa.visible{display:block;}
+.panel-mapa h4{margin:11px 0 5px;font-family:var(--display);font-size:11.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1px;color:var(--texto-tenue);}
+.panel-mapa h4:first-child{margin-top:0;}
+.bases{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.bases button{background:var(--panel-2);border:1px solid var(--linea);border-radius:5px;
+  padding:5px 7px;font-size:11px;color:var(--texto-medio);}
+.bases button:hover{background:var(--panel-3);color:var(--texto);}
+.bases button[aria-pressed="true"]{background:var(--acento-hueco);border-color:var(--acento);
+  color:var(--acento);font-weight:600;}
+.capa-op{display:flex;align-items:center;gap:7px;padding:4px 5px;border-radius:5px;cursor:pointer;
+  font-size:11.5px;color:var(--texto-medio);line-height:1.35;}
+.capa-op:hover{background:var(--panel-2);color:var(--texto);}
+.capa-op input{accent-color:var(--acento);margin:0;flex:0 0 auto;width:13px;height:13px;}
+.capa-op .muestra{width:12px;height:12px;border-radius:3px;flex:0 0 auto;
+  border:1px solid rgba(255,255,255,.3);}
+.capa-op .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.capa-op .cargando-mini{width:11px;height:11px;border:2px solid var(--linea);
+  border-top-color:var(--acento);border-radius:50%;animation:girar .7s linear infinite;flex:0 0 auto;}
+.herramientas{display:grid;gap:4px;}
+.herramientas .btn{width:100%;text-align:left;background:var(--panel-2);}
+
+.leyenda{position:absolute;bottom:42px;left:9px;z-index:520;background:rgba(15,59,56,.95);
   backdrop-filter:blur(6px);border:1px solid var(--linea);border-radius:var(--radio);
-  padding:8px 11px;font-size:11px;box-shadow:var(--sombra);max-width:230px;}
-.leyenda h4{margin:0 0 5px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;
-  color:var(--texto-tenue);font-weight:600;}
+  padding:7px 10px;font-size:11px;box-shadow:var(--sombra);max-width:224px;}
+.leyenda.plegada .ley-cuerpo{display:none;}
+.leyenda h4{margin:0;font-size:10px;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--texto-tenue);font-weight:600;display:flex;align-items:center;gap:6px;
+  cursor:pointer;user-select:none;}
+.leyenda h4 .flecha{font-size:8px;transition:transform .15s;}
+.leyenda.plegada h4 .flecha{transform:rotate(-90deg);}
+.ley-cuerpo{margin-top:5px;}
 .ley-fila{display:flex;align-items:center;gap:6px;margin:2px 0;color:var(--texto-medio);}
 .ley-caja{width:13px;height:11px;border-radius:2px;flex:0 0 auto;border:1px solid rgba(255,255,255,.14);}
 .marcador{border-radius:50%;border:1.6px solid rgba(255,255,255,.85);
@@ -186,17 +264,35 @@ button{cursor:pointer;}
 .sel-activa.visible{display:flex;}
 
 /* ---------- Pestañas y paneles ---------- */
-.tabs{display:flex;gap:2px;padding:0 11px;border-bottom:1px solid var(--linea);
-  background:var(--panel);flex:0 0 auto;overflow-x:auto;}
-.tab{background:none;border:none;border-bottom:2px solid transparent;padding:9px 13px;
-  color:var(--texto-tenue);font-family:var(--display);font-size:14px;font-weight:600;
-  letter-spacing:.5px;white-space:nowrap;}
-.tab:hover{color:var(--texto-medio);}
-.tab.activa{color:var(--acento);border-bottom-color:var(--acento);}
-.paneles{flex:1;overflow-y:auto;min-height:0;padding:13px;}
+/* Zona de tops bajo el mapa: cuatro columnas con el ancho del centro. */
+.tops{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--fondo);}
+.tops-cab{display:flex;align-items:center;gap:10px;padding:8px 13px;
+  border-bottom:1px solid var(--linea);background:var(--panel);flex:0 0 auto;}
+.tops-cab h2{margin:0;font-family:var(--display);font-size:14px;font-weight:700;
+  text-transform:uppercase;letter-spacing:1.1px;color:var(--texto-medio);white-space:nowrap;}
+.tops-cuerpo{flex:1;overflow-y:auto;min-height:0;padding:11px 13px 20px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:0 20px;
+  align-content:start;}
+.tops-col{min-width:0;}
+.tops-col .mini-h{margin-top:0;padding-top:0;border-top:none;}
+
+/* Selector de sección del riel de análisis. */
+.selec.seccion{flex:1;font-family:var(--display);font-size:14px;font-weight:700;
+  letter-spacing:.6px;text-transform:uppercase;color:var(--acento);
+  border-color:var(--linea);padding:6px 9px;}
+.paneles{flex:1;overflow-y:auto;min-height:0;padding:14px;}
 .panel{display:none;} .panel.activo{display:block;}
 
-.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px;}
+/* Tirador para ensanchar el riel de análisis. */
+.tirador{position:absolute;left:-3px;top:0;bottom:0;width:7px;cursor:col-resize;z-index:10;}
+.tirador::before{content:'';position:absolute;left:2px;top:0;bottom:0;width:3px;
+  background:transparent;transition:background .12s;}
+.tirador:hover::before{background:var(--acento);}
+.riel.der{position:relative;}
+.riel.plegado .tirador{display:none;}
+body.ensanchando{cursor:col-resize;user-select:none;}
+
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px;}
 .tarjeta{background:var(--panel);border:1px solid var(--linea);border-radius:var(--radio);
   padding:11px 13px 13px;min-width:0;}
 .tarjeta.ancha{grid-column:1/-1;}
@@ -204,8 +300,9 @@ button{cursor:pointer;}
   letter-spacing:.5px;line-height:1.2;}
 .tarjeta .sub{margin:0 0 9px;font-size:10.5px;color:var(--texto-tenue);line-height:1.4;}
 .tarjeta-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:9px;}
-.lienzo{position:relative;height:250px;}
-.lienzo.alto{height:330px;} .lienzo.bajo{height:190px;}
+.lienzo{position:relative;height:270px;}
+.lienzo.alto{height:360px;} .lienzo.bajo{height:200px;}
+
 
 /* ---------- Tablas ---------- */
 .tabla-env{overflow:auto;max-height:520px;border:1px solid var(--linea);border-radius:6px;}
@@ -332,18 +429,20 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
   color:var(--texto-tenue);text-align:center;line-height:1.3;border-radius:6px;}
 #slot-ods .logo-hueco{width:46px;height:46px;min-width:46px;border-radius:50%;padding:0;}
 .logo-hueco b{font-size:9.5px;font-weight:600;color:var(--texto-medio);letter-spacing:.5px;}
-@media (max-width:1240px){ .logo-hueco{display:none;} }
+@media (max-width:1360px){ .logo-hueco{display:none;} }
+@media (max-width:860px){ .modos button{padding:5px 8px;font-size:11px;} }
 @media (max-width:860px){ #slot-ods img{height:32px;width:32px;} #slot-implan img{height:26px;} }
 
-@media (max-width:1240px){
+@media (max-width:1360px){
   :root{--rail-izq:262px;--rail-der:0px;}
   .app{grid-template-columns:var(--rail-izq) minmax(0,1fr);}
-  .riel.der{position:fixed;top:0;right:0;bottom:0;width:300px;z-index:1200;transform:translateX(100%);
-    transition:transform .22s;box-shadow:var(--sombra);}
+  .riel.der{position:fixed;top:0;right:0;bottom:0;width:min(560px,94vw);z-index:1200;
+    transform:translateX(100%);transition:transform .22s;box-shadow:var(--sombra);}
   .riel.der.abierto{transform:none;}
   .abrir-riel{display:inline-block;}
+  .tirador{display:none;}
 }
-@media (max-width:860px){
+@media (max-width:900px){
   :root{--rail-izq:0px;}
   .app{grid-template-columns:minmax(0,1fr);}
   .riel.izq{position:fixed;top:0;left:0;bottom:0;width:288px;z-index:1200;transform:translateX(-100%);
@@ -393,7 +492,7 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
                placeholder="Consultar folio…" aria-label="Consultar un cuestionario por su folio">
         <div class="folio-resultados" id="folio-resultados" role="listbox"></div>
       </div>
-      <button class="btn chico abrir-riel" id="btn-tops-movil">Tops</button>
+      <button class="btn chico abrir-riel" id="btn-tops-movil">Análisis</button>
       <button class="btn chico" id="btn-recargar" title="Vuelve a leer la base de datos">Actualizar</button>
       <button class="btn chico pri" id="btn-exportar">Exportar</button>
     </div>
@@ -401,9 +500,13 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
 
   <!-- ================= RIEL IZQUIERDO: FILTROS ================= -->
   <aside class="riel izq" id="riel-izq">
+    <button class="cinta" data-desplegar="izq">Filtros</button>
     <div class="riel-cab">
       <h2>Filtros</h2>
-      <button class="btn chico" id="btn-limpiar">Limpiar</button>
+      <div class="fila">
+        <button class="btn chico" id="btn-limpiar">Limpiar</button>
+        <button class="plegar" data-plegar="izq" aria-label="Plegar los filtros" title="Plegar">‹</button>
+      </div>
     </div>
     <div class="chips" id="chips-activos"></div>
     <div class="riel-cuerpo" id="filtros"></div>
@@ -411,22 +514,44 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
 
   <!-- ================= CENTRO: MAPA + ANÁLISIS ================= -->
   <main class="centro">
-    <div class="mapa-caja">
+    <div class="mapa-caja" id="mapa-caja">
       <div id="mapa"></div>
 
-      <div class="mapa-barra">
-        <button class="btn chico" data-modo="puntos" aria-pressed="true">Puntos</button>
-        <button class="btn chico" data-modo="cluster" aria-pressed="false">Agrupado</button>
-        <button class="btn chico" data-modo="calor" aria-pressed="false">Calor</button>
-        <button class="btn chico" data-modo="coropleta" aria-pressed="false">Por colonia</button>
-        <button class="btn chico" id="btn-vacios" aria-pressed="false" title="Colonias y comunidades del padrón sin ninguna respuesta">Vacíos</button>
+      <div class="modos" id="modos" role="group" aria-label="Modo de representación">
+        <button data-modo="puntos" aria-pressed="true">Puntos</button>
+        <button data-modo="cluster" aria-pressed="false">Agrupado</button>
+        <button data-modo="calor" aria-pressed="false">Calor</button>
+        <button data-modo="coropleta" aria-pressed="false">Por colonia</button>
       </div>
 
       <div class="mapa-der">
-        <button class="btn chico" id="btn-base" title="Cambiar mapa base">Satélite</button>
-        <button class="btn chico" id="btn-lazo" aria-pressed="false" title="Dibujar un área para filtrar todo el tablero">Seleccionar área</button>
-        <button class="btn chico" id="btn-encuadrar" title="Encuadrar los datos filtrados">Encuadrar</button>
-        <button class="btn chico" id="btn-peso-calor" aria-pressed="false" title="Ponderar el mapa de calor por prioridad declarada">Pesar por prioridad</button>
+        <button class="btn chico" id="btn-panel-capas" aria-expanded="false">Capas y herramientas</button>
+        <div class="panel-mapa" id="panel-mapa">
+          <h4>Mapa base</h4>
+          <div class="bases" id="bases"></div>
+
+          <h4>Capas de referencia</h4>
+          <div id="capas-referencia">
+            <div style="color:var(--texto-tenue);font-size:11px;padding:4px 5px;">Cargando…</div>
+          </div>
+
+          <h4>Capas del análisis</h4>
+          <label class="capa-op">
+            <input type="checkbox" id="chk-vacios">
+            <span class="muestra" style="background:rgba(239,68,68,.4);border-color:#ef4444"></span>
+            <span class="t">Sin respuestas</span>
+          </label>
+          <label class="capa-op">
+            <input type="checkbox" id="chk-peso-calor">
+            <span class="t">Pesar el calor por prioridad</span>
+          </label>
+
+          <h4>Herramientas</h4>
+          <div class="herramientas">
+            <button class="btn chico" id="btn-lazo" aria-pressed="false">Seleccionar un área</button>
+            <button class="btn chico" id="btn-encuadrar">Encuadrar lo filtrado</button>
+          </div>
+        </div>
       </div>
 
       <div class="leyenda" id="leyenda"></div>
@@ -436,31 +561,48 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
       </div>
     </div>
 
-    <nav class="tabs" id="tabs">
-      <button class="tab activa" data-panel="panorama">Panorama</button>
-      <button class="tab" data-panel="cruce">Cruce de variables</button>
-      <button class="tab" data-panel="perfil">Quién participa</button>
-      <button class="tab" data-panel="prioridad">Prioridad y gravedad</button>
-      <button class="tab" data-panel="territorio">Territorio</button>
-      <button class="tab" data-panel="levantamiento">Levantamiento</button>
-      <button class="tab" data-panel="calidad">Calidad de datos</button>
-      <button class="tab" data-panel="exportar">Exportar</button>
-    </nav>
+    <div class="divisor" id="divisor" role="separator" tabindex="0"
+         aria-label="Arrastre para ajustar el alto del mapa"></div>
 
-    <div class="paneles" id="paneles"></div>
+    <!-- Los tops viven bajo el mapa: en horizontal caben cuatro columnas y se
+         leen mejor que apilados en una tira estrecha. -->
+    <section class="tops" id="tops">
+      <div class="tops-cab">
+        <h2>Tops del filtro actual</h2>
+        <select class="selec" id="der-metrica" title="Qué mide cada lista">
+          <option value="menciones" title="Veces que se marcó">Menciones</option>
+          <option value="personas" title="Personas distintas detrás del dato">Personas</option>
+          <option value="ipp" title="Peso de gravedad: 3, 2 y 1 puntos según el orden que le dio la persona">Índice de prioridad</option>
+        </select>
+        <div class="vistas" role="group" aria-label="Reparto de la pantalla">
+          <button data-vista="mapa" aria-pressed="false">Mapa</button>
+          <button data-vista="mixto" aria-pressed="true">Mixto</button>
+          <button data-vista="listas" aria-pressed="false">Listas</button>
+        </div>
+      </div>
+      <div class="tops-cuerpo" id="riel-der-cuerpo"></div>
+    </section>
   </main>
 
-  <!-- ================= RIEL DERECHO: TOPS Y FICHA ================= -->
+  <!-- ============ RIEL DERECHO: GRÁFICAS Y TABLAS DE ANÁLISIS ============ -->
   <aside class="riel der" id="riel-der">
+    <div class="tirador" id="tirador-der" role="separator" tabindex="0"
+         aria-label="Arrastre para ajustar el ancho del panel de análisis"></div>
+    <button class="cinta" data-desplegar="der">Análisis</button>
     <div class="riel-cab">
-      <h2 id="der-titulo">Tops</h2>
-      <select class="selec" id="der-metrica" title="Métrica de los tops">
-        <option value="menciones" title="Veces que se marcó">Menciones</option>
-        <option value="personas" title="Personas distintas detrás del dato">Personas</option>
-        <option value="ipp" title="Peso de gravedad: 3, 2 y 1 puntos según el orden que le dio la persona">Índice de prioridad</option>
+      <button class="plegar" data-plegar="der" aria-label="Plegar el análisis" title="Plegar">›</button>
+      <select class="selec seccion" id="sel-seccion" aria-label="Sección de análisis">
+        <option value="panorama">Panorama</option>
+        <option value="cruce">Cruce de variables</option>
+        <option value="perfil">Quién participa</option>
+        <option value="prioridad">Prioridad y gravedad</option>
+        <option value="territorio">Territorio</option>
+        <option value="levantamiento">Levantamiento</option>
+        <option value="calidad">Calidad de datos</option>
+        <option value="exportar">Exportar</option>
       </select>
     </div>
-    <div class="riel-cuerpo" id="riel-der-cuerpo"></div>
+    <div class="paneles" id="paneles"></div>
   </aside>
 
 </div>
@@ -668,6 +810,7 @@ const TEXTO_PROBLEMA = {};   // 'AMBIENTAL-3.2' -> texto
 const TITULO_BLOQUE  = {};   // 'AMBIENTAL-3'   -> 'Basura y residuos'
 const AGENDA_BLOQUE  = {};   // 'AMBIENTAL-3'   -> 'Ambiental'
 const CODIGOS_CATALOGO = [];
+const CODIGOS_OTRO = new Set();   // el campo abierto de cada bloque
 ['ambiental','territorial'].forEach(ag => {
   const etiqueta = ag === 'ambiental' ? 'Ambiental' : 'Territorial';
   CATALOGO[ag].forEach(g => {
@@ -678,6 +821,9 @@ const CODIGOS_CATALOGO = [];
       TEXTO_PROBLEMA[cod] = t;
       CODIGOS_CATALOGO.push(cod);
     });
+    /* La última opción de cada bloque es el campo abierto. Se registra aparte
+       porque no es un problema del catálogo, sino un contenedor de texto libre. */
+    CODIGOS_OTRO.add(`${g.pre}.${g.op.length + 1}`);
     TEXTO_PROBLEMA[`${g.pre}.${g.op.length + 1}`] = 'Otro (escrito por la persona)';
   });
 });
@@ -697,7 +843,7 @@ const estado = {
 
 const filtros = {};              // dimension -> Set de valores
 const rangos = { edadMin:null, edadMax:null, fechaIni:null, fechaFin:null,
-                 soloPriorizados:false, folio:null, folioId:null };
+                 soloPriorizados:false, sinOtros:false, folio:null, folioId:null };
 let areaSeleccion = null;        // GeoJSON de la selección espacial
 
 /* ---- Utilidades ---- */
@@ -915,16 +1061,24 @@ function armarFila(cod, m, g) {
   const bloque = String(cod || '').split('.')[0];
   const geom = g.geom || null;
   const c = centro(geom, g.lat, g.lng);
+  const tituloBloque = TITULO_BLOQUE[bloque] || bloque;
+  /* "Otro" no es un problema: es un campo abierto que recoge cualquier cosa.
+     Si se etiqueta igual en los 18 bloques, las respuestas de temas distintos
+     se suman y el campo abierto encabeza cualquier ranking, que es justo lo
+     que no debe pasar. Se separa por tema y se marca para poder excluirlo. */
+  const esOtro = CODIGOS_OTRO.has(cod) || !TEXTO_PROBLEMA[cod];
   return {
+    esOtro,
     idHijo: g.idHijo,
     idMadre: m.id ?? null,
     folio: m.folio || null,
     codigo: cod,
     bloque,
-    tituloBloque: TITULO_BLOQUE[bloque] || bloque,
+    tituloBloque,
     agenda: AGENDA_BLOQUE[bloque] || (String(cod).startsWith('AMBIENTAL') ? 'Ambiental' : 'Territorial'),
-    texto: TEXTO_PROBLEMA[cod] || g.texto || cod,
-    textoLibre: g.texto && !TEXTO_PROBLEMA[cod] ? g.texto : null,
+    texto: esOtro ? `Otro, escrito por la persona · ${tituloBloque}`
+                  : (TEXTO_PROBLEMA[cod] || g.texto || cod),
+    textoLibre: esOtro ? (g.texto || null) : null,
     orden: g.orden ? Number(g.orden) : null,
     peso: PESO_PRIORIDAD[g.orden] || 0,
     alcance: tipoAlcance(geom, g.alcance),
@@ -1007,6 +1161,7 @@ function pasaFiltros(f, salvo) {
     if (set && set.size && !set.has(DIM[k].get(f))) return false;
   }
   if (rangos.folioId != null && f.idMadre !== rangos.folioId) return false;
+  if (rangos.sinOtros && f.esOtro) return false;
   if (rangos.soloPriorizados && !f.orden) return false;
   if (rangos.edadMin != null && (f.edad == null || f.edad < rangos.edadMin)) return false;
   if (rangos.edadMax != null && (f.edad == null || f.edad > rangos.edadMax)) return false;
@@ -1034,7 +1189,8 @@ function filtrado() {
   return cacheFiltrado;
 }
 function sello() {
-  let s = (areaSeleccion ? 1 : 0) + (rangos.soloPriorizados ? 2 : 0) + (rangos.folioId || 0) * 13;
+  let s = (areaSeleccion ? 1 : 0) + (rangos.soloPriorizados ? 2 : 0) + (rangos.sinOtros ? 5 : 0)
+        + (rangos.folioId || 0) * 13;
   s += (rangos.edadMin ?? 0) * 7 + (rangos.edadMax ?? 0) * 11;
   s += (rangos.fechaIni ? rangos.fechaIni.getTime() : 0) / 1e6;
   s += (rangos.fechaFin ? rangos.fechaFin.getTime() : 0) / 1e7;
@@ -1057,6 +1213,11 @@ const METRICA = {
   personas:  { et:'Personas',  calc: filas => new Set(filas.map(f => f.idMadre)).size },
   ipp:       { et:'Índice de prioridad', calc: filas => filas.reduce((a, f) => a + f.peso, 0) }
 };
+
+/* Los rankings por problema descartan el campo abierto: "Otro" no es un
+   problema comparable, sino un cajón que recoge asuntos de temas distintos.
+   Se sigue contando en totales, mapa y exportaciones. */
+const soloCatalogo = filas => filas.filter(f => !f.esOtro);
 
 /* Agrupa filas por una dimensión y devuelve [{clave, valor, filas}] ordenado. */
 function agrupar(filas, dim, metrica = 'menciones', tope = 0) {
@@ -1168,6 +1329,8 @@ function pintarFiltros() {
     <div class="f-grupo abierto"><div class="f-lista" style="max-height:none;display:block;">
       <label class="f-op" style="padding-left:0;"><input type="checkbox" id="r-prio"
         ${rangos.soloPriorizados ? 'checked' : ''}><span class="t">Solo problemas priorizados</span></label>
+      <label class="f-op" style="padding-left:0;" title="El campo abierto de cada bloque recoge temas distintos entre sí; excluirlo deja los rankings comparables"><input type="checkbox" id="r-otros"
+        ${rangos.sinOtros ? 'checked' : ''}><span class="t">Excluir las respuestas «Otro»</span></label>
       <div style="font-size:10.5px;color:var(--texto-tenue);margin-top:7px;">Edad exacta</div>
       <div class="f-rango">
         <input type="number" id="r-edad-min" placeholder="mín" value="${rangos.edadMin ?? ''}" min="0" max="120">
@@ -1193,6 +1356,7 @@ function pintarFiltros() {
     let t; inp.oninput = () => { clearTimeout(t); t = setTimeout(pintarFiltros, 250); };
   });
   document.getElementById('r-prio').onchange = e => { rangos.soloPriorizados = e.target.checked; refrescar(); };
+  document.getElementById('r-otros').onchange = e => { rangos.sinOtros = e.target.checked; refrescar(); };
   const numCambio = (id, campo) => {
     const el = document.getElementById(id);
     el.onchange = () => { const v = el.value === '' ? null : Number(el.value);
@@ -1218,7 +1382,7 @@ function alternarFiltro(dim, valor, encender) {
 function limpiarFiltros() {
   CLAVES_DIM.forEach(k => delete filtros[k]);
   rangos.edadMin = rangos.edadMax = rangos.fechaIni = rangos.fechaFin = null;
-  rangos.soloPriorizados = false;
+  rangos.soloPriorizados = false; rangos.sinOtros = false;
   rangos.folio = null; rangos.folioId = null;
   quitarSeleccion(true);
   refrescar();
@@ -1229,6 +1393,7 @@ function pintarChips() {
   CLAVES_DIM.forEach(k => { if (filtros[k]) filtros[k].forEach(v =>
     chips.push(`<span class="chip">${esc(cortar(v, 26))}<button data-dim="${k}" data-val="${esc(v)}" aria-label="Quitar">×</button></span>`)); });
   if (rangos.soloPriorizados) chips.push(`<span class="chip">solo priorizados<button data-especial="prio">×</button></span>`);
+  if (rangos.sinOtros) chips.push(`<span class="chip">sin «Otro»<button data-especial="otros">×</button></span>`);
   if (rangos.edadMin != null || rangos.edadMax != null)
     chips.push(`<span class="chip">edad ${rangos.edadMin ?? '·'}–${rangos.edadMax ?? '·'}<button data-especial="edad">×</button></span>`);
   if (rangos.fechaIni || rangos.fechaFin)
@@ -1241,6 +1406,7 @@ function pintarChips() {
   cont.querySelectorAll('button[data-especial]').forEach(b => b.onclick = () => {
     const e = b.dataset.especial;
     if (e === 'prio') rangos.soloPriorizados = false;
+    if (e === 'otros') rangos.sinOtros = false;
     if (e === 'edad') { rangos.edadMin = rangos.edadMax = null; }
     if (e === 'fecha') { rangos.fechaIni = rangos.fechaFin = null; }
     if (e === 'folio') { rangos.folio = null; rangos.folioId = null; }
@@ -1288,32 +1454,216 @@ function iniciarMapa() {
     refrescar();
   });
 
-  document.querySelectorAll('.mapa-barra [data-modo]').forEach(b => b.onclick = () => {
+  /* Modos: control segmentado. Un clic basta y el segundo sobre el mismo modo
+     no hace nada, para que no se quede el mapa en blanco por accidente. */
+  document.querySelectorAll('#modos [data-modo]').forEach(b => b.onclick = () => {
+    if (modoMapa === b.dataset.modo) return;
     modoMapa = b.dataset.modo;
-    document.querySelectorAll('.mapa-barra [data-modo]').forEach(x =>
+    document.querySelectorAll('#modos [data-modo]').forEach(x =>
       x.setAttribute('aria-pressed', String(x === b)));
     pintarMapa();
   });
-  document.getElementById('btn-base').onclick = () => {
-    baseActual = (baseActual + 1) % BASES.length;
+
+  /* Panel de capas y herramientas: se abre y se cierra con el mismo botón, y
+     también al hacer clic fuera o con Escape. */
+  const btnPanel = document.getElementById('btn-panel-capas');
+  const panel = document.getElementById('panel-mapa');
+  btnPanel.onclick = e => {
+    e.stopPropagation();
+    const abierto = panel.classList.toggle('visible');
+    btnPanel.setAttribute('aria-expanded', String(abierto));
+  };
+  panel.onclick = e => e.stopPropagation();
+  document.addEventListener('click', () => {
+    panel.classList.remove('visible');
+    btnPanel.setAttribute('aria-expanded', 'false');
+  });
+
+  const cajaBases = document.getElementById('bases');
+  cajaBases.innerHTML = BASES.map((b, i) =>
+    `<button data-base="${i}" aria-pressed="${i === 0}">${esc(b.et)}</button>`).join('');
+  cajaBases.querySelectorAll('[data-base]').forEach(b => b.onclick = () => {
+    const i = Number(b.dataset.base);
+    if (i === baseActual) return;
+    baseActual = i;
     mapa.removeLayer(capaBase);
-    capaBase = BASES[baseActual].crear().addTo(mapa);
+    capaBase = BASES[i].crear().addTo(mapa);
     if (capaBase.bringToBack) capaBase.bringToBack();
-    document.getElementById('btn-base').textContent = BASES[baseActual].et;
+    cajaBases.querySelectorAll('[data-base]').forEach(x =>
+      x.setAttribute('aria-pressed', String(x === b)));
+  });
+
+  const chkCalor = document.getElementById('chk-peso-calor');
+  chkCalor.onchange = () => {
+    pesarCalor = chkCalor.checked;
+    if (modoMapa === 'calor') pintarMapa(); else pintarLeyenda('puntos', filtrado());
   };
-  document.getElementById('btn-peso-calor').onclick = e => {
-    pesarCalor = !pesarCalor;
-    e.currentTarget.setAttribute('aria-pressed', String(pesarCalor));
-    if (modoMapa === 'calor') pintarMapa();
-  };
-  document.getElementById('btn-vacios').onclick = e => {
-    mostrarVacios = !mostrarVacios;
-    e.currentTarget.setAttribute('aria-pressed', String(mostrarVacios));
-    pintarMapa();
-  };
+  const chkVacios = document.getElementById('chk-vacios');
+  chkVacios.onchange = () => { mostrarVacios = chkVacios.checked; pintarMapa(); };
+
   document.getElementById('btn-encuadrar').onclick = encuadrar;
   document.getElementById('btn-lazo').onclick = alternarLazo;
   document.getElementById('btn-quitar-sel').onclick = () => { quitarSeleccion(true); refrescar(); };
+
+  cargarCapasReferencia();
+}
+
+/* ============================================================================
+   CAPAS DE REFERENCIA
+   Se leen de la misma tabla de configuración que usa el geoportal
+   (capas_geoportal), así que el límite municipal, los límites históricos y
+   cualquier capa que el IMPLAN dé de alta allá aparecen aquí sin tocar código.
+   Se dibujan por debajo de los datos de participación para no taparlos.
+   ============================================================================ */
+const capasRef = {};        // nombre_tabla -> { cfg, capa, cargando }
+let configCapasRef = [];
+
+/* Ajustes de dibujo por capa, sin tocar la base. La llave se compara sin
+   acentos ni mayúsculas contra el nombre de tabla y contra el alias, así que
+   basta un fragmento. `relleno` en 0 deja solo el contorno, que es lo que
+   corresponde a un límite: colorear su interior tapa el mapa. */
+const AJUSTES_CAPAS = [
+  { busca:'limite municipal', color:'#000000', relleno:0,   grosor:2.6 },
+  { busca:'limites historicos',                relleno:.12, grosor:2 },
+  { busca:'limite estatal',   color:'#000000', relleno:0,   grosor:2 },
+  { busca:'municipios',       color:'#000000', relleno:0,   grosor:1.6 }
+];
+
+function ajusteDeCapa(nombre, alias) {
+  const n = norm(nombre), a = norm(alias || '');
+  return AJUSTES_CAPAS.find(x => n.includes(x.busca) || a.includes(x.busca)) || {};
+}
+
+function colorSeguro(color, porDefecto) {
+  return (typeof color === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(color.trim()))
+    ? color.trim() : porDefecto;
+}
+
+async function cargarCapasReferencia() {
+  const cont = document.getElementById('capas-referencia');
+  try {
+    configCapasRef = await leer('capas_geoportal?select=*');
+  } catch (e) {
+    cont.innerHTML = `<div style="color:var(--texto-tenue);font-size:11px;padding:4px 5px;line-height:1.5;">
+      No se pudo leer <code>capas_geoportal</code>. Revise que la política RLS permita
+      SELECT con la llave anónima.</div>`;
+    return;
+  }
+  if (!configCapasRef.length) {
+    cont.innerHTML = `<div style="color:var(--texto-tenue);font-size:11px;padding:4px 5px;">
+      No hay capas configuradas en el geoportal.</div>`;
+    return;
+  }
+  configCapasRef.sort((a, b) => String(a.alias || a.nombre_tabla)
+    .localeCompare(String(b.alias || b.nombre_tabla), 'es'));
+
+  cont.innerHTML = configCapasRef.map(c => {
+    const aj = ajusteDeCapa(c.nombre_tabla, c.alias);
+    const color = aj.color || colorSeguro(c.color_hex, '#3498db');
+    return `<label class="capa-op" title="${esc(c.nombre_tabla)}">
+      <input type="checkbox" data-capa="${esc(c.nombre_tabla)}">
+      <span class="muestra" style="background:${color};${
+        aj.relleno === 0 ? 'background:transparent;border-width:2px;border-color:' + color + ';' : ''}
+        ${/^#0{3,6}$/i.test(color) ? 'box-shadow:0 0 0 1px rgba(255,255,255,.55);' : ''}"></span>
+      <span class="t">${esc(c.alias || c.nombre_tabla)}</span>
+      <span data-giro="${esc(c.nombre_tabla)}"></span></label>`;
+  }).join('');
+
+  cont.querySelectorAll('input[data-capa]').forEach(chk => {
+    chk.onchange = () => alternarCapaRef(chk.dataset.capa, chk.checked);
+  });
+
+  /* Las capas que el geoportal muestra de entrada se encienden también aquí:
+     el límite municipal es contexto, no una decisión que deba tomar el usuario. */
+  for (const c of configCapasRef) {
+    if (!c.visible_por_defecto) continue;
+    const chk = cont.querySelector(`input[data-capa="${CSS.escape(c.nombre_tabla)}"]`);
+    if (chk) { chk.checked = true; await alternarCapaRef(c.nombre_tabla, true); }
+  }
+}
+
+async function alternarCapaRef(nombre, encender) {
+  const reg = capasRef[nombre];
+  if (!encender) {
+    if (reg && reg.capa) mapa.removeLayer(reg.capa);
+    if (reg) reg.cancelado = true;                  // corta una descarga en curso
+    delete capasRef[nombre];
+    refrescarLeyenda();                             // deja de listarse al apagarse
+    return;
+  }
+  if (reg) return;                                  // ya está cargada o cargando
+  /* Apagar la capa mientras se descarga dejaba la capa huérfana sobre el mapa
+     al resolverse el fetch. La marca sirve para descartar ese resultado. */
+  const marca = { cargando: true };
+  capasRef[nombre] = marca;
+  const giro = document.querySelector(`[data-giro="${CSS.escape(nombre)}"]`);
+  if (giro) giro.innerHTML = '<span class="cargando-mini"></span>';
+
+  const cfg = configCapasRef.find(c => c.nombre_tabla === nombre) || {};
+  const aj = ajusteDeCapa(nombre, cfg.alias);
+  const base = aj.color || colorSeguro(cfg.color_hex, '#3498db');
+  try {
+    const filas = await leer(`${encodeURIComponent(nombre)}?select=*`);
+    const feats = [];
+    filas.forEach(f => {
+      const g = aGeoJSON(f.geom);
+      if (!g) return;
+      const props = { ...f }; delete props.geom;
+      feats.push({ type:'Feature', geometry:g, properties:props });
+    });
+    if (marca.cancelado || capasRef[nombre] !== marca) return;   // se apagó mientras cargaba
+    if (!feats.length) { throw new Error('sin geometrías legibles'); }
+
+    /* Los límites históricos traen su propio color por rasgo, igual que en el
+       geoportal; el resto usa el color de la configuración. */
+    const colorDeRasgo = f => aj.color
+      || colorSeguro(f.properties && f.properties.color_hex, base);
+    const grosor = aj.grosor != null ? aj.grosor : 2;
+    const relleno = aj.relleno != null ? aj.relleno : .14;
+    const capa = L.geoJSON({ type:'FeatureCollection', features:feats }, {
+      style: f => ({ color: colorDeRasgo(f), weight:grosor, opacity:.95,
+        fillColor: colorDeRasgo(f), fillOpacity:relleno }),
+      pointToLayer: (f, ll) => L.circleMarker(ll, { radius:5, fillColor:colorDeRasgo(f),
+        color:'#fff', weight:1.5, opacity:1, fillOpacity:.85 }),
+      onEachFeature: (f, capa) => {
+        let campos = [];
+        if (cfg.campos_popup) {
+          try { campos = Array.isArray(cfg.campos_popup) ? cfg.campos_popup : JSON.parse(cfg.campos_popup); }
+          catch (e) { campos = []; }
+        }
+        if (!campos.length) campos = Object.keys(f.properties).slice(0, 6);
+        capa.bindPopup(`<div><div style="font-weight:600;margin-bottom:4px;">
+          ${esc(cfg.alias || nombre)}</div><div style="font-size:11.5px;display:grid;gap:2px;">
+          ${campos.filter(k => f.properties[k] != null && f.properties[k] !== '')
+            .map(k => `<div><span style="color:var(--texto-tenue)">${esc(k)}:</span>
+              ${esc(f.properties[k])}</div>`).join('')}</div></div>`);
+      }
+    }).addTo(mapa);
+    if (marca.cancelado || capasRef[nombre] !== marca) { mapa.removeLayer(capa); return; }
+    capa.bringToBack();                             // debajo de los datos de participación
+    capasRef[nombre] = { cfg, capa, cargando:false };
+    refrescarLeyenda();
+  } catch (e) {
+    if (marca.cancelado) return;
+    delete capasRef[nombre];
+    const chk = document.querySelector(`input[data-capa="${CSS.escape(nombre)}"]`);
+    if (chk) chk.checked = false;
+    toast(`No se pudo cargar "${cfg.alias || nombre}": ${e.message}`, 4200);
+  } finally {
+    if (giro) giro.innerHTML = '';
+  }
+}
+
+/* Redibuja solo la leyenda, sin volver a construir las capas del mapa. */
+function refrescarLeyenda() {
+  if (!mapa) return;
+  pintarLeyenda(modoMapa === 'coropleta' ? 'coropleta'
+              : modoMapa === 'calor' ? 'calor' : 'puntos', filtrado());
+}
+
+/* Las capas de referencia van al fondo cada vez que se redibujan los datos. */
+function reordenarCapasRef() {
+  Object.values(capasRef).forEach(r => { if (r.capa && r.capa.bringToBack) r.capa.bringToBack(); });
 }
 
 let dibujante = null;
@@ -1352,13 +1702,15 @@ function pintarMapa() {
 
   if (mostrarVacios) pintarVacios();
 
-  if (modoMapa === 'coropleta') { pintarCoropleta(filas); pintarLeyenda('coropleta', filas); return; }
+  if (modoMapa === 'coropleta') { pintarCoropleta(filas); pintarLeyenda('coropleta', filas);
+    reordenarCapasRef(); return; }
 
   if (modoMapa === 'calor') {
     const puntos = conGeo.map(f => [f.lat, f.lng, pesarCalor ? (f.peso || .35) : .6]);
     capaCalor = L.heatLayer(puntos, { radius:24, blur:18, maxZoom:17, minOpacity:.32,
       gradient:{0:'#0F3B38',.3:'#34d399',.55:'#a3e635',.78:'#facc15',1:'#ef4444'} }).addTo(mapa);
     pintarLeyenda('calor', filas);
+    reordenarCapasRef();
     return;
   }
 
@@ -1399,6 +1751,7 @@ function pintarMapa() {
   if (modoMapa === 'cluster') { capaCluster = grupo.addTo(mapa); }
   else { capaDatos = grupo.addTo(mapa); }
   pintarLeyenda('puntos', filas);
+  reordenarCapasRef();
 }
 
 function popupProblema(f) {
@@ -1453,7 +1806,7 @@ function pintarCoropleta(filas) {
   const feats = estado.colonias.filter(c => c.geometry).map(c => {
     const a = agr.get(norm(c.nombre));
     const v = a ? METRICA[metrica].calc(a.filas) : 0;
-    const top = a ? agrupar(a.filas, 'problema', 'menciones', 1)[0] : null;
+    const top = a ? agrupar(soloCatalogo(a.filas), 'problema', 'menciones', 1)[0] : null;
     return { type:'Feature', geometry:c.geometry, properties:{
       nombre:c.nombre, valor:v, personas: a ? new Set(a.filas.map(f => f.idMadre)).size : 0,
       ipp: a ? a.filas.reduce((s, f) => s + f.peso, 0) : 0,
@@ -1497,34 +1850,46 @@ function pintarVacios() {
   if (capaVacios.bringToBack) capaVacios.bringToBack();
 }
 
+let leyendaPlegada = false;
 function pintarLeyenda(modo, filas) {
   const l = document.getElementById('leyenda');
-  let html = '';
+  let titulo = '', html = '';
   if (modo === 'coropleta') {
     const max = capaCoropleta ? capaCoropleta._max : 1;
     const paso = Math.max(1, Math.ceil(max / RAMPA.length));
-    html = `<h4>Menciones por colonia</h4>` + RAMPA.map((c, i) =>
+    titulo = 'Menciones por colonia';
+    html = RAMPA.map((c, i) =>
       `<div class="ley-fila"><span class="ley-caja" style="background:${c}"></span>
        ${i * paso + (i ? 1 : 0)}${i === RAMPA.length - 1 ? ' y más' : ' a ' + Math.min(max, (i + 1) * paso)}</div>`).join('')
       + `<div class="ley-fila"><span class="ley-caja" style="background:#123B36"></span>Sin respuestas</div>`;
   } else if (modo === 'calor') {
-    html = `<h4>Densidad ${pesarCalor ? 'ponderada por prioridad' : 'de menciones'}</h4>
-      <div style="height:9px;border-radius:5px;background:linear-gradient(90deg,#0F3B38,#34d399,#a3e635,#facc15,#ef4444);margin:4px 0;"></div>
+    titulo = `Densidad ${pesarCalor ? 'ponderada por prioridad' : 'de menciones'}`;
+    html = `<div style="height:9px;border-radius:5px;background:linear-gradient(90deg,#0F3B38,#34d399,#a3e635,#facc15,#ef4444);margin:4px 0;"></div>
       <div style="display:flex;justify-content:space-between;color:var(--texto-tenue);font-size:10px;">
         <span>menos</span><span>más</span></div>
       <div style="color:var(--texto-tenue);font-size:9.5px;margin-top:4px;line-height:1.4;">
         Guía visual con radio en píxeles, no una densidad de kernel analítica.</div>`;
   } else {
     const amb = filas.filter(f => f.agenda === 'Ambiental').length;
-    html = `<h4>Agenda</h4>
-      <div class="ley-fila"><span class="ley-caja" style="background:${COLOR_AGENDA.Ambiental}"></span>Ambiental · ${num(amb)}</div>
+    titulo = 'Agenda';
+    html = `<div class="ley-fila"><span class="ley-caja" style="background:${COLOR_AGENDA.Ambiental}"></span>Ambiental · ${num(amb)}</div>
       <div class="ley-fila"><span class="ley-caja" style="background:${COLOR_AGENDA.Territorial}"></span>Territorial · ${num(filas.length - amb)}</div>
       <div class="ley-fila" style="margin-top:4px;color:var(--texto-tenue);font-size:10px;">
         El punto grande es un problema priorizado</div>`;
   }
   if (mostrarVacios) html += `<div class="ley-fila" style="margin-top:5px;">
     <span class="ley-caja" style="background:rgba(239,68,68,.35);border-color:#ef4444"></span>Sin respuestas</div>`;
-  l.innerHTML = html;
+  const refs = Object.entries(capasRef).filter(([, r]) => r.capa);
+  if (refs.length) html += `<div class="ley-fila" style="margin-top:6px;padding-top:5px;
+    border-top:1px solid var(--linea-suave);color:var(--texto-tenue);font-size:10px;">
+    Referencia: ${refs.map(([n, r]) => esc((r.cfg && r.cfg.alias) || n)).join(', ')}</div>`;
+  l.innerHTML = `<h4><span class="flecha">▼</span>${esc(titulo)}</h4>
+    <div class="ley-cuerpo">${html}</div>`;
+  l.classList.toggle('plegada', leyendaPlegada);
+  l.querySelector('h4').onclick = () => {
+    leyendaPlegada = !leyendaPlegada;
+    l.classList.toggle('plegada', leyendaPlegada);
+  };
 }
 
 function encuadrar() {
@@ -1632,6 +1997,16 @@ function armarPaneles() {
         <h3>Colonias y comunidades</h3>
         <p class="sub">Las 15 con más problemas señalados.</p>
         <div class="lienzo alto"><canvas id="g-colonias"></canvas></div>
+      </div>
+      <div class="tarjeta ancha">
+        <div class="tarjeta-cab">
+          <div><h3>Lo que se escribió en «Otro»</h3>
+            <p class="sub">El campo abierto de cada bloque recoge asuntos de temas
+               distintos entre sí, así que no compite en los rankings. Su contenido
+               sí importa: es lo que el cuestionario no supo preguntar.</p></div>
+          <button class="btn chico" id="btn-otros-csv">Descargar textos</button>
+        </div>
+        <div id="otros-libres"></div>
       </div>
       <div class="tarjeta">
         <h3>Reparto entre agendas</h3>
@@ -1866,6 +2241,7 @@ function armarPaneles() {
           <button class="btn" data-exp="csv">CSV de problemas</button>
           <button class="btn" data-exp="csv-personas">CSV de cuestionarios</button>
           <button class="btn" data-exp="agenda">Tabla de agenda priorizada</button>
+          <button class="btn" data-exp="otros">Textos abiertos «Otro»</button>
           <button class="btn" data-exp="json">Respaldo JSON</button>
         </div>
         <p class="nota">La tabla de agenda priorizada entrega problema, código, agenda,
@@ -1908,19 +2284,26 @@ function armarPaneles() {
   document.getElementById('ficha-colonia').onchange = pintarFicha;
   document.getElementById('btn-imprimir-ficha').onclick = () => window.print();
   document.querySelectorAll('[data-exp]').forEach(b => b.onclick = () => exportar(b.dataset.exp));
+  document.getElementById('btn-otros-csv').onclick = () => exportar('otros');
 
-  document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
-    document.querySelectorAll('.tab').forEach(x => x.classList.remove('activa'));
-    document.querySelectorAll('.panel').forEach(x => x.classList.remove('activo'));
-    t.classList.add('activa');
-    document.getElementById('p-' + t.dataset.panel).classList.add('activo');
-    refrescarPanel(t.dataset.panel);
-  });
+  const selSeccion = document.getElementById('sel-seccion');
+  selSeccion.onchange = () => mostrarSeccion(selSeccion.value);
+  /* Solo se marca la sección; el dibujado lo hace refrescar() al final del
+     arranque, para no construir las mismas gráficas dos veces. */
+  document.getElementById('p-' + selSeccion.value).classList.add('activo');
 }
 
+function mostrarSeccion(cual) {
+  document.querySelectorAll('.panel').forEach(x => x.classList.remove('activo'));
+  const p = document.getElementById('p-' + cual);
+  if (p) p.classList.add('activo');
+  const sel = document.getElementById('sel-seccion');
+  if (sel && sel.value !== cual) sel.value = cual;
+  refrescarPanel(cual);
+}
 function panelActivo() {
-  const t = document.querySelector('.tab.activa');
-  return t ? t.dataset.panel : 'panorama';
+  const sel = document.getElementById('sel-seccion');
+  return sel ? sel.value : 'panorama';
 }
 function refrescarPanel(cual) {
   ({ panorama:pintarPanorama, cruce:pintarCruce, perfil:pintarPerfil, prioridad:pintarPrioridad,
@@ -1939,12 +2322,12 @@ function pintarPanorama() {
     menciones:'Cuántas veces se marcó cada problema. Mide qué tan extendido está. Clic en una barra para filtrar todo el tablero.',
     personas:'Cuántas personas distintas lo señalaron. Mide a cuánta gente respalda el dato, sin que quien marcó muchos problemas pese de más.',
     ipp:'Suma de los problemas que la gente puso entre los tres más graves: 3 puntos al primero, 2 al segundo, 1 al tercero. Mide gravedad, no frecuencia.'
-  }[m];
+  }[m] + ' No incluye el campo abierto «Otro»; sus textos están más abajo.';
 
   const av = document.getElementById('avisos');
   av.innerHTML = estado.avisos.map(a => `<div class="aviso">${a}</div>`).join('');
 
-  const top = agrupar(filas, 'problema', m, 15);
+  const top = agrupar(soloCatalogo(filas), 'problema', m, 15);
   pintar('g-problemas', {
     type:'bar',
     data:{ labels: top.map(t => cortar(t.clave, 62)),
@@ -1968,6 +2351,8 @@ function pintarPanorama() {
       scales:{ x:EJE_Y, y:{ ...SIN_EJE, ticks:{ font:{ size:10 } } } },
       onClick: alClicarBarra('bloque', bl.map(b => b.clave)) }
   });
+
+  pintarOtros(filas);
 
   const col = agrupar(filas, 'colonia', m, 15);
   pintar('g-colonias', {
@@ -2007,6 +2392,39 @@ function pintarPanorama() {
       pointLabels:{ font:{ size:9.5 }, color:'#8FAAA6' }, ticks:{ display:false, backdropColor:'transparent' } } },
       plugins:{ tooltip:{ callbacks:{ label: c => `${c.dataset.label}: ${c.raw}%` } } } }
   });
+}
+
+/* Textos libres agrupados por tema. Material cualitativo para el diagnóstico:
+   sirve para detectar problemas que el catálogo del cuestionario no cubre. */
+function pintarOtros(filas) {
+  const cont = document.getElementById('otros-libres');
+  if (!cont) return;
+  const otros = filas.filter(f => f.esOtro);
+  const conTexto = otros.filter(f => f.textoLibre && f.textoLibre.trim());
+  if (!otros.length) {
+    cont.innerHTML = '<div class="vacio">Nadie usó el campo abierto con los filtros actuales.</div>';
+    return;
+  }
+  const porTema = new Map();
+  otros.forEach(f => {
+    if (!porTema.has(f.tituloBloque)) porTema.set(f.tituloBloque, []);
+    porTema.get(f.tituloBloque).push(f);
+  });
+  const temas = [...porTema.entries()].sort((a, b) => b[1].length - a[1].length);
+  cont.innerHTML = `
+    <p class="sub" style="margin-bottom:8px;">${num(otros.length)} respuestas abiertas
+      en ${num(temas.length)} temas; ${num(conTexto.length)} traen texto legible.</p>
+    <div class="tabla-env" style="max-height:340px;"><table class="datos">
+      <thead><tr><th class="eje">Tema</th><th class="num">Veces</th><th>Lo que escribieron</th></tr></thead>
+      <tbody>${temas.map(([tema, fs]) => {
+        const textos = [...new Set(fs.map(f => (f.textoLibre || '').trim()).filter(Boolean))];
+        return `<tr><td class="eje">${esc(tema)}</td>
+          <td class="num">${num(fs.length)}</td>
+          <td style="white-space:normal;max-width:520px;line-height:1.5;">${
+            textos.length ? textos.slice(0, 12).map(t => esc(t)).join(' · ')
+                          : '<span class="cero">Sin texto capturado</span>'}${
+            textos.length > 12 ? ` <span class="cero">y ${num(textos.length - 12)} más</span>` : ''}</td></tr>`;
+      }).join('')}</tbody></table></div>`;
 }
 
 /* ---------- Perfil ---------- */
@@ -2091,9 +2509,10 @@ function barrasSimples(id, datos, get, color, eje, tope, orden) {
 /* ---------- Prioridad ---------- */
 function pintarPrioridad() {
   const filas = filtrado();
-  const porMenciones = agrupar(filas, 'problema', 'menciones', 14);
+  const catalogo = soloCatalogo(filas);
+  const porMenciones = agrupar(catalogo, 'problema', 'menciones', 14);
   const claves = porMenciones.map(p => p.clave);
-  const ippDe = c => filas.filter(f => f.texto === c).reduce((a, f) => a + f.peso, 0);
+  const ippDe = c => catalogo.filter(f => f.texto === c).reduce((a, f) => a + f.peso, 0);
   pintar('g-prioridad', {
     type:'bar',
     data:{ labels: claves.map(c => cortar(c, 54)),
@@ -2105,7 +2524,7 @@ function pintarPrioridad() {
     options:{ indexAxis:'y', scales:{ x:EJE_Y, y:{ ...SIN_EJE, ticks:{ font:{ size:10 } } } } }
   });
 
-  const primeros = filas.filter(f => f.orden === 1);
+  const primeros = catalogo.filter(f => f.orden === 1);
   const g1 = agrupar(primeros, 'problema', 'menciones', 12);
   pintar('g-primero', {
     type:'bar',
@@ -2139,7 +2558,7 @@ function pintarPrioridad() {
       <thead><tr><th class="eje">Colonia o comunidad</th><th class="num">Índice</th>
       <th class="num">Personas</th><th>Problema puesto en primer lugar</th><th>Agenda</th></tr></thead>
       <tbody>${cols.map(c => {
-        const p1 = agrupar(c.filas.filter(f => f.orden === 1), 'problema', 'menciones', 1)[0];
+        const p1 = agrupar(soloCatalogo(c.filas).filter(f => f.orden === 1), 'problema', 'menciones', 1)[0];
         const ag = p1 ? p1.filas[0].agenda : null;
         return `<tr><td class="eje">${esc(c.clave)}</td>
           <td class="num">${num(c.valor)}</td>
@@ -2306,8 +2725,8 @@ function pintarFicha() {
   const filas = estado.problemas.filter(f => f.colonia === nombre);
   const ids = new Set(filas.map(f => f.idMadre));
   const personas = estado.participaciones.filter(p => ids.has(p.id));
-  const top = agrupar(filas, 'problema', 'menciones', 10);
-  const prio = agrupar(filas.filter(f => f.orden), 'problema', 'ipp', 6);
+  const top = agrupar(soloCatalogo(filas), 'problema', 'menciones', 10);
+  const prio = agrupar(soloCatalogo(filas).filter(f => f.orden), 'problema', 'ipp', 6);
   const sexos = agrupar(filas, 'sexo', 'personas');
   const amb = filas.filter(f => f.agenda === 'Ambiental').length;
   const edades = personas.map(p => p.edad).filter(e => e != null && !isNaN(e));
@@ -2498,30 +2917,44 @@ function pintarRielDerecho() {
     const g = agrupar(filas, dim, met, tope);
     if (!g.length) return '';
     const max = g[0].valor || 1;
-    return `<div class="mini-h">${titulo}</div>` + g.map((x, i) => `
+    return `<div class="tops-col"><div class="mini-h">${titulo}</div>` + g.map((x, i) => `
       <div class="top-fila" data-dim="${dim}" data-val="${esc(x.clave)}" title="${esc(x.clave)}">
         <span class="pos">${i + 1}</span>
         <div class="cuerpo"><span class="et">${esc(x.clave)}</span>
           <div class="barra-mini" style="width:${Math.max(2, x.valor / max * 100)}%;
             background:${COLOR_AGENDA[x.filas[0].agenda] && dim !== 'colonia' && dim !== 'asentamiento'
               ? COLOR_AGENDA[x.filas[0].agenda] : ACENTO}"></div></div>
-        <span class="n">${num(x.valor)}</span></div>`).join('');
+        <span class="n">${num(x.valor)}</span></div>`).join('') + '</div>';
+  };
+
+  /* La lista de problemas usa el mismo formato, pero sobre el catálogo. */
+  const bloqueProblemas = () => {
+    const g = agrupar(soloCatalogo(filas), 'problema', met, 12);
+    if (!g.length) return '';
+    const max = g[0].valor || 1;
+    return `<div class="tops-col"><div class="mini-h">Problemas</div>` + g.map((x, i) => `
+      <div class="top-fila" data-dim="problema" data-val="${esc(x.clave)}" title="${esc(x.clave)}">
+        <span class="pos">${i + 1}</span>
+        <div class="cuerpo"><span class="et">${esc(x.clave)}</span>
+          <div class="barra-mini" style="width:${Math.max(2, x.valor / max * 100)}%;
+            background:${COLOR_AGENDA[x.filas[0].agenda]}"></div></div>
+        <span class="n">${num(x.valor)}</span></div>`).join('') + '</div>';
   };
 
   const personas = new Set(filas.map(f => f.idMadre)).size;
   cont.innerHTML =
     bloque('Colonias y comunidades', 'colonia', 12) +
-    bloque('Problemas', 'problema', 12) +
+    bloqueProblemas() +
     bloque('Temas', 'bloque', 10) +
     bloque('Quién participa', 'representacion', 6) +
-    `<div class="mini-h">Resumen del filtro</div>
+    `<div class="tops-col"><div class="mini-h">Resumen del filtro</div>
      <div class="dato-fila"><span>Cuestionarios</span><b>${num(personas)}</b></div>
      <div class="dato-fila"><span>Problemas señalados</span><b>${num(filas.length)}</b></div>
      <div class="dato-fila"><span>Priorizados</span><b>${num(filas.filter(f => f.orden).length)}</b></div>
      <div class="dato-fila"><span>Índice de prioridad</span><b>${num(filas.reduce((a, f) => a + f.peso, 0))}</b></div>
      <div class="dato-fila"><span>Colonias distintas</span><b>${num(new Set(filas.map(f => f.colonia)).size)}</b></div>
      <p class="nota">El índice de prioridad pondera con 3, 2 y 1 punto los problemas que
-     cada persona colocó en primero, segundo y tercer lugar de gravedad.</p>`;
+     cada persona colocó en primero, segundo y tercer lugar de gravedad.</p></div>`;
 
   cont.querySelectorAll('.top-fila[data-dim]').forEach(f => f.onclick = () => {
     const d = f.dataset.dim, v = f.dataset.val;
@@ -2620,8 +3053,9 @@ async function exportar(que) {
     const feats = estado.colonias.filter(c => c.geometry).map(c => {
       const a = agr.get(norm(c.nombre));
       const fs = a ? a.filas : [];
-      const top = fs.length ? agrupar(fs, 'problema', 'menciones', 1)[0] : null;
-      const p1 = fs.filter(f => f.orden === 1);
+      const cat = soloCatalogo(fs);
+      const top = cat.length ? agrupar(cat, 'problema', 'menciones', 1)[0] : null;
+      const p1 = cat.filter(f => f.orden === 1);
       const top1 = p1.length ? agrupar(p1, 'problema', 'menciones', 1)[0] : null;
       return { type:'Feature', geometry:c.geometry, properties:{
         colonia: c.nombre,
@@ -2649,6 +3083,15 @@ async function exportar(que) {
           new Set(x.filas.map(f => f.idMadre)).size, x.filas.reduce((a, f) => a + f.peso, 0),
           x.filas.filter(f => f.orden === 1).length, cols.length, cols.join(' | ')];
       })], 'agenda_priorizada_pmduoet');
+
+  } else if (que === 'otros') {
+    const otros = filas.filter(f => f.esOtro);
+    if (!otros.length) { toast('No hay respuestas abiertas en este filtro'); return; }
+    bajarCSV([['Folio','Código','Agenda','Tema','Texto escrito','Lugar de gravedad',
+        'Colonia o comunidad','Tipo de asentamiento','Sexo','Edad','Latitud','Longitud','Fecha'],
+      ...otros.map(f => [f.folio ?? '', f.codigo, f.agenda, f.tituloBloque, f.textoLibre ?? '',
+        f.orden ?? '', f.colonia, f.asentamiento, f.sexo, f.edad ?? '', f.lat ?? '', f.lng ?? '',
+        f.fecha ? f.fecha.toISOString() : ''])], 'textos_abiertos_pmduoet');
 
   } else if (que === 'json') {
     bajar(JSON.stringify({
@@ -2897,6 +3340,117 @@ function montarConsultaFolio() {
 }
 
 /* ============================================================================
+   ACOMODO DE LA PANTALLA
+   El mapa y el análisis compiten por el mismo alto, y los rieles por el ancho.
+   En vez de fijar un reparto, se deja que el usuario lo mueva: tres vistas
+   rápidas, un divisor arrastrable y dos rieles que se pliegan a una cinta.
+   ============================================================================ */
+const VISTAS = { mapa:88, mixto:54, listas:0 };
+let altoMapa = 54;
+
+function aplicarAltoMapa(porcentaje, marcarVista) {
+  altoMapa = Math.max(0, Math.min(92, porcentaje));
+  const caja = document.getElementById('mapa-caja');
+  const divisor = document.getElementById('divisor');
+  const oculto = altoMapa < 6;
+  caja.classList.toggle('oculta', oculto);
+  divisor.classList.toggle('oculto', oculto);
+  caja.style.flexBasis = oculto ? '0' : altoMapa + '%';
+  caja.style.minHeight = oculto ? '0' : '210px';
+  document.querySelector('.centro').classList.toggle('vista-listas', oculto);
+
+  if (marcarVista !== false) {
+    const cual = oculto ? 'listas' : (altoMapa >= 78 ? 'mapa' : (Math.abs(altoMapa - 54) < 6 ? 'mixto' : null));
+    document.querySelectorAll('.vistas [data-vista]').forEach(b =>
+      b.setAttribute('aria-pressed', String(b.dataset.vista === cual)));
+  }
+  if (mapa && !oculto) setTimeout(() => mapa.invalidateSize(), 60);
+  /* Las gráficas visibles se redibujan al cambiar de alto para que no queden
+     estiradas dentro de una tarjeta que ya cambió de tamaño. */
+  Object.values(graficas).forEach(g => { try { g.resize(); } catch (e) {} });
+}
+
+function montarAcomodo() {
+  document.querySelectorAll('.vistas [data-vista]').forEach(b => b.onclick = () => {
+    aplicarAltoMapa(VISTAS[b.dataset.vista]);
+    if (b.dataset.vista === 'listas') toast('Mapa plegado. Vuelva con Mapa o Mixto.');
+  });
+
+  /* Divisor: arrastre con el ratón y también con las flechas del teclado. */
+  const divisor = document.getElementById('divisor');
+  const centro = document.querySelector('.centro');
+  let arrastrando = false;
+  const mover = e => {
+    if (!arrastrando) return;
+    const caja = centro.getBoundingClientRect();
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - caja.top;
+    aplicarAltoMapa(y / caja.height * 100);
+  };
+  const soltar = () => { arrastrando = false; document.body.classList.remove('redimensionando'); };
+  const tomar = e => { arrastrando = true; document.body.classList.add('redimensionando'); e.preventDefault(); };
+  divisor.addEventListener('mousedown', tomar);
+  divisor.addEventListener('touchstart', tomar, { passive:false });
+  document.addEventListener('mousemove', mover);
+  document.addEventListener('touchmove', mover, { passive:true });
+  document.addEventListener('mouseup', soltar);
+  document.addEventListener('touchend', soltar);
+  divisor.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp') { aplicarAltoMapa(altoMapa - 4); e.preventDefault(); }
+    if (e.key === 'ArrowDown') { aplicarAltoMapa(altoMapa + 4); e.preventDefault(); }
+  });
+  divisor.addEventListener('dblclick', () => aplicarAltoMapa(altoMapa > 60 ? VISTAS.mixto : VISTAS.mapa));
+
+  /* Rieles plegables */
+  const plegar = (lado, plegado) => {
+    const riel = document.getElementById('riel-' + lado);
+    riel.classList.toggle('plegado', plegado);
+    document.querySelector('.app').classList.toggle('sin-' + lado, plegado);
+    if (mapa) setTimeout(() => mapa.invalidateSize(), 200);
+    Object.values(graficas).forEach(g => { try { g.resize(); } catch (e) {} });
+  };
+  document.querySelectorAll('[data-plegar]').forEach(b =>
+    b.onclick = () => plegar(b.dataset.plegar, true));
+  document.querySelectorAll('[data-desplegar]').forEach(b =>
+    b.onclick = () => plegar(b.dataset.desplegar, false));
+
+  /* Ancho del riel de análisis: se arrastra desde su borde izquierdo. */
+  const tirador = document.getElementById('tirador-der');
+  if (tirador) {
+    let ensanchando = false;
+    const moverAncho = e => {
+      if (!ensanchando) return;
+      const x = e.touches ? e.touches[0].clientX : e.clientX;
+      const ancho = Math.max(300, Math.min(window.innerWidth * 0.62, window.innerWidth - x));
+      document.documentElement.style.setProperty('--rail-der', ancho + 'px');
+    };
+    const soltarAncho = () => {
+      if (!ensanchando) return;
+      ensanchando = false;
+      document.body.classList.remove('ensanchando');
+      if (mapa) setTimeout(() => mapa.invalidateSize(), 60);
+      Object.values(graficas).forEach(g => { try { g.resize(); } catch (e) {} });
+    };
+    const tomarAncho = e => { ensanchando = true; document.body.classList.add('ensanchando'); e.preventDefault(); };
+    tirador.addEventListener('mousedown', tomarAncho);
+    tirador.addEventListener('touchstart', tomarAncho, { passive:false });
+    document.addEventListener('mousemove', moverAncho);
+    document.addEventListener('touchmove', moverAncho, { passive:true });
+    document.addEventListener('mouseup', soltarAncho);
+    document.addEventListener('touchend', soltarAncho);
+    tirador.addEventListener('keydown', e => {
+      const actual = parseInt(getComputedStyle(document.documentElement)
+        .getPropertyValue('--rail-der'), 10) || 470;
+      if (e.key === 'ArrowLeft') { document.documentElement.style
+        .setProperty('--rail-der', Math.min(900, actual + 40) + 'px'); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { document.documentElement.style
+        .setProperty('--rail-der', Math.max(300, actual - 40) + 'px'); e.preventDefault(); }
+    });
+  }
+
+  aplicarAltoMapa(VISTAS.mixto);
+}
+
+/* ============================================================================
    CICLO PRINCIPAL
    ============================================================================ */
 function refrescar() {
@@ -2938,14 +3492,21 @@ async function iniciar() {
     cargando(false);
   };
   document.getElementById('btn-exportar').onclick = () => {
-    document.querySelector('.tab[data-panel="exportar"]').click();
+    document.getElementById('riel-der').classList.add('abierto');
+    document.getElementById('riel-der').classList.remove('plegado');
+    document.querySelector('.app').classList.remove('sin-der');
+    mostrarSeccion('exportar');
   };
   document.getElementById('btn-filtros-movil').onclick = () =>
     document.getElementById('riel-izq').classList.toggle('abierto');
   document.getElementById('btn-tops-movil').onclick = () =>
     document.getElementById('riel-der').classList.toggle('abierto');
+  montarAcomodo();
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { apagarLazo(); cerrarFolio();
+      const pm = document.getElementById('panel-mapa');
+      if (pm) { pm.classList.remove('visible');
+        document.getElementById('btn-panel-capas').setAttribute('aria-expanded','false'); }
       document.querySelectorAll('.riel').forEach(r => r.classList.remove('abierto')); }
   });
   window.addEventListener('resize', () => { if (mapa) setTimeout(() => mapa.invalidateSize(), 160); });
@@ -2966,4 +3527,3 @@ iniciar();
 </script>
 </body>
 </html>
-
