@@ -451,9 +451,41 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
   .mapa-caja{flex-basis:44%;}
   .kpis{display:none;}
 }
+/* ---------- Hoja de impresión ---------- */
+#hoja-impresion{display:none;}
+@media print{
+  body.imprimir-ficha>*{display:none!important;}
+  body.imprimir-ficha #hoja-impresion{display:block!important;}
+  #hoja-impresion{color:#000;font-family:var(--sans);}
+  .hoja-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+    border-bottom:2px solid #222;padding-bottom:8px;margin-bottom:14px;}
+  .hoja-t{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:.6px;
+    text-transform:uppercase;line-height:1.1;}
+  .hoja-s{font-size:11px;color:#555;margin-top:2px;}
+  .hoja-f{font-size:11px;color:#555;white-space:nowrap;}
+  /* El contenido de la ficha se reusa tal cual; solo se lleva a tinta sobre papel. */
+  #hoja-impresion .kpi{background:#f4f4f4;border:1px solid #ccc;color:#000;}
+  #hoja-impresion .kpi .v{color:#000;} #hoja-impresion .kpi .k{color:#555;}
+  #hoja-impresion .mini-h{color:#000;border-top-color:#ccc;}
+  #hoja-impresion .top-fila .et,#hoja-impresion .dato-fila{color:#222;}
+  #hoja-impresion .dato-fila{border-bottom-color:#ddd;}
+  #hoja-impresion .dato-fila b{color:#000;}
+  #hoja-impresion .top-fila .pos,#hoja-impresion .nota{color:#555;}
+  #hoja-impresion .nota{border-top-color:#ccc;}
+  #hoja-impresion .aviso{background:#fff6f6;border-color:#e0b4b4;color:#7a2b2b;}
+  #hoja-impresion .rejilla{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  #hoja-impresion>div{break-inside:avoid;}
+}
+
 @media print{
   body{overflow:visible;background:#fff;color:#000;}
-  .riel,.tabs,.barra .acciones,.mapa-barra,.mapa-der,.kpis,.abrir-riel{display:none!important;}
+  .riel.izq,.tabs,.barra .acciones,.mapa-barra,.mapa-der,.kpis,.abrir-riel,
+  .divisor,.vistas,.plegar,.cinta,.tirador{display:none!important;}
+  /* El riel de análisis sí debe imprimirse: es donde vive todo el contenido. */
+  .riel.der{position:static!important;transform:none!important;width:auto!important;
+    border:none!important;box-shadow:none!important;display:block!important;}
+  .riel.der .riel-cab{border:none;padding-left:0;}
+  .paneles{overflow:visible!important;padding:0!important;}
   .app{display:block;height:auto;}
   .barra{background:#fff!important;border-bottom:1px solid #bbb;color:#000;
     justify-content:space-between;padding:12px 0;}
@@ -609,6 +641,10 @@ table.datos tfoot td{position:sticky;bottom:0;background:var(--panel-2);font-fam
 
 <div class="toast" id="toast"></div>
 
+<!-- Se llena al imprimir una ficha y se vacía al terminar. Fuera de la impresión
+     no ocupa espacio ni se ve. -->
+<div id="hoja-impresion" aria-hidden="true"></div>
+
 <div class="modal" id="modal-folio" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
   <div class="modal-caja">
     <div class="modal-cab">
@@ -677,156 +713,48 @@ const CENTRO = { lat: 21.0186, lng: -101.8556 };
 const BBOX = { latMin: 20.5, latMax: 21.5, lngMin: -102.4, lngMax: -101.3 };
 const PESO_PRIORIDAD = { 1: 3, 2: 2, 3: 1 };   // orden declarado -> puntos IPP
 
-/* ---- Catálogo idéntico al del formulario. Se embebe para poder mostrar el
-        texto completo de cada problema y, sobre todo, para saber qué problemas
-        del catálogo NO ha mencionado nadie: un cero también es un hallazgo. ---- */
-const CATALOGO = {
-  ambiental: [
-    { pre:'AMBIENTAL-1', titulo:'Agua que llega a las casas', op:[
-      'No llega agua o llega muy poco','El agua llega solo algunos días o unas horas (tandeo)',
-      'El agua llega sucia, con color o con tierra','El agua sabe o huele mal',
-      'Los pozos se están secando o cada vez hay que perforar más hondo',
-      'Hay fugas en la calle que nadie repara','Nos abastecemos con pipas porque no hay red'] },
-    { pre:'AMBIENTAL-2', titulo:'Aguas sucias, ríos, canales y presas', op:[
-      'Corren aguas negras a cielo abierto por calles o terrenos',
-      'Se descargan aguas negras al río, canal, arroyo o presa',
-      'Se riegan cultivos con agua sucia o con aguas negras',
-      'El río, canal o presa está contaminado (espuma, color, peces muertos)',
-      'Los canales o arroyos están llenos de basura o azolvados',
-      'Una fábrica, taller o granja tira sus desechos al agua o al suelo',
-      'Hay una planta tratadora que no funciona o funciona mal'] },
-    { pre:'AMBIENTAL-3', titulo:'Basura y residuos', op:[
-      'El camión de la basura no pasa o pasa muy de vez en cuando',
-      'Hay tiraderos clandestinos (lotes, orillas de camino, arroyos)',
-      'Se quema la basura al aire libre','Se tiran escombro y cascajo en lotes o caminos',
-      'Se tiran desechos de talleres, curtidurías o granjas',
-      'Hay animales muertos o desechos de animales tirados','No hay separación ni reciclaje'] },
-    { pre:'AMBIENTAL-4', titulo:'Aire, humo y olores', op:[
-      'Se queman residuos de cosecha (esquilmos) y el humo llega a las casas',
-      'Humo o polvo de fábricas','Ladrilleras u hornos',
-      'Malos olores de granjas, curtidurías, drenaje o tiradero',
-      'Mucho polvo por calles y caminos sin pavimento',
-      'Ruido fuerte de fábricas, talleres o tráfico pesado',
-      'Se aplican agroquímicos cerca de casas o escuelas'] },
-    { pre:'AMBIENTAL-5', titulo:'Tierra de cultivo, cerros y vegetación', op:[
-      'La tierra ya no produce como antes','Se lava o se deslava la tierra cuando llueve (cárcavas, erosión)',
-      'Se están talando o quitando árboles y matorral del cerro',
-      'Hay incendios en cerros o pastizales',
-      'Hay bancos de material, minas o extracción de tierra sin control',
-      'Se está construyendo sobre tierras de cultivo',
-      'Ya casi no se ven animales que antes había (aves, conejos, peces)'] },
-    { pre:'AMBIENTAL-6', titulo:'Calor, lluvia y clima', op:[
-      'Hace mucho más calor que antes y no hay sombra','Llueve más fuerte y en menos tiempo',
-      'Hay sequías más largas que afectan la siembra o el ganado',
-      'Heladas o granizadas que dañan cultivos',
-      'Vientos fuertes que dañan techos, cultivos o infraestructura urbana'] }
-  ],
-  territorial: [
-    { pre:'TERRITORIAL-1', titulo:'Cómo está creciendo la ciudad y las comunidades', op:[
-      'Se están abriendo fraccionamientos muy lejos, sin servicios',
-      'Hay muchos lotes baldíos y casas abandonadas dentro de la colonia',
-      'Se está construyendo donde antes había siembra o monte',
-      'Se ponen fábricas, bodegas o granjas junto a las casas',
-      'Se venden terrenos sin permiso, sin calles ni servicios',
-      'Las comunidades rurales están quedando aisladas o despoblándose'] },
-    { pre:'TERRITORIAL-2', titulo:'Vivienda', op:[
-      'Familias que viven en casas muy pequeñas o hacinadas',
-      'Casas con piso de tierra, techo de lámina o materiales frágiles',
-      'Casas sin baño o sin conexión al drenaje',
-      'Casas construidas en lugares peligrosos (arroyo, ladera, canal)',
-      'Los jóvenes no pueden comprar o rentar vivienda aquí',
-      'Hay casas de interés social vacías o abandonadas'] },
-    { pre:'TERRITORIAL-3', titulo:'Papeles del terreno y asentamientos irregulares', op:[
-      'Muchas familias no tienen escrituras',
-      'La colonia o el asentamiento no está reconocido por el municipio',
-      'Hay conflictos por límites de terrenos',
-      'Se ocuparon terrenos ejidales o comunales sin trámite',
-      'Por no tener papeles no llegan los servicios',
-      'Ha sufrido invasión o despojo de alguna propiedad (casa o terreno)'] },
-    { pre:'TERRITORIAL-4', titulo:'Drenaje, luz y servicios en la calle', op:[
-      'No hay red de drenaje; se usan fosas o se descarga a cielo abierto',
-      'El drenaje se tapa o se derrama seguido','No hay alumbrado público o está descompuesto',
-      'La luz se va seguido','Hay casas sin conexión a la luz','No hay señal de internet o de teléfono'] },
-    { pre:'TERRITORIAL-5', titulo:'Calles, caminos y transporte', op:[
-      'Calles o caminos sin pavimento, con lodo o polvo','Calles con baches o en muy mal estado',
-      'No hay banquetas o están rotas; no se puede caminar',
-      'No hay rampas ni pasos seguros para personas con discapacidad o adultos mayores',
-      'El camión pasa muy poco, muy caro o no llega hasta aquí',
-      'Cruces peligrosos o atropellamientos','Falta de señalamientos',
-      'Pasa mucho tráiler o transporte pesado por donde vive la gente',
-      'Se hace mucho tiempo para llegar a la cabecera o a otras ciudades',
-      'No se puede andar en bicicleta con seguridad'] },
-    { pre:'TERRITORIAL-6', titulo:'Escuelas, salud y otros servicios públicos', op:[
-      'No hay escuela cerca o hay que salir de la comunidad',
-      'La escuela está en mal estado o le faltan espacios',
-      'No hay centro de salud cerca o no tiene médico ni medicinas',
-      'No hay dónde hacer trámites sin ir hasta el centro',
-      'Falta mercado, tienda o abasto cercano','Falta panteón, o el que hay ya está saturado',
-      'Falta espacio deportivo o está abandonado',
-      'Falta espacio para adultos mayores, niños o cultura'] },
-    { pre:'TERRITORIAL-7', titulo:'Plazas, parques y áreas verdes', op:[
-      'No hay área verde en la colonia o comunidad','No hay parque o plaza',
-      'El parque o plaza existe, pero está abandonado o sin mantenimiento',
-      'No hay árboles ni sombra','El parque o plaza es inseguro y la gente no lo usa',
-      'No hay juegos para niños ni espacio para jóvenes','El espacio público está mal iluminado'] },
-    { pre:'TERRITORIAL-8', titulo:'Peligros y riesgos', op:[
-      'Su colonia o comunidad se inunda cuando llueve fuerte',
-      'Hay casas junto a un arroyo, canal o presa que se desborda',
-      'Hay riesgo de deslave o caída de piedras del cerro',
-      'Hay grietas o hundimientos en calles o casas',
-      'Hay una fábrica, gasera o bodega peligrosa cerca de las casas',
-      'Línea de alta tensión','Vía de tren junto a las casas','Tiembla',
-      'Hay riesgo de incendio (pastizal, tiradero, taller)',
-      'No hay salida o el acceso se corta en temporada de lluvias'] },
-    { pre:'TERRITORIAL-9', titulo:'Trabajo y economía', op:[
-      'No hay trabajo cerca; hay que irse a León o a otro lado',
-      'Los trabajos que hay son mal pagados o sin prestaciones',
-      'El campo ya no deja lo suficiente para vivir',
-      'Cerraron talleres o negocios de calzado, sombrero o costura',
-      'Los jóvenes se van del municipio',
-      'Falta capacitación o preparación para los trabajos que sí hay',
-      'Falta apoyo para negocios pequeños o productores'] },
-    { pre:'TERRITORIAL-10', titulo:'Seguridad y convivencia', op:[
-      'Robos en casas o comercios','Robos en parcelas o de ganado','Robos con violencia',
-      'Lugares donde la gente ya no pasa por miedo',
-      'Consumo de alcohol o drogas en la vía pública',
-      'Las mujeres no pueden andar solas de noche','No hay vigilancia o tarda mucho en llegar'] },
-    { pre:'TERRITORIAL-11', titulo:'Identidad, tradición y paisaje', op:[
-      'Se están perdiendo construcciones o lugares antiguos importantes',
-      'Se están perdiendo fiestas, oficios o tradiciones',
-      'Se está afectando o tapando el paisaje (cerros, vistas, entradas)',
-      'Hay lugares bonitos o históricos que nadie cuida ni aprovecha'] },
-    { pre:'TERRITORIAL-12', titulo:'Gobierno y coordinación', op:[
-      'Se dan permisos de construir donde no debería','Nadie vigila ni sanciona a quien incumple',
-      'Las obras se hacen sin avisar ni preguntar a los vecinos',
-      'Cambia el gobierno y las obras se quedan a medias',
-      'Problemas que se comparten con León o Purísima y nadie los resuelve',
-      'No se sabe a quién acudir ni cómo dar seguimiento'] }
-  ]
-};
-
-/* Índices derivados del catálogo */
-const TEXTO_PROBLEMA = {};   // 'AMBIENTAL-3.2' -> texto
-const TITULO_BLOQUE  = {};   // 'AMBIENTAL-3'   -> 'Basura y residuos'
-const AGENDA_BLOQUE  = {};   // 'AMBIENTAL-3'   -> 'Ambiental'
+/* ---- Catálogo de problemas ------------------------------------------------
+   Se lee de la base, no se embebe. Los códigos del geoportal son fijos por
+   opción: al dividir o retirar un problema, su clave no se reasigna, de modo
+   que las respuestas anteriores siguen apuntando a lo mismo. Un catálogo
+   copiado aquí se desincroniza en la primera edición del cuestionario y el
+   tablero empieza a mostrar el texto de otro problema.
+   --------------------------------------------------------------------------- */
+const TEXTO_PROBLEMA = {};        // 'AMBIENTAL-3.2' -> texto
+const TITULO_BLOQUE  = {};        // 'AMBIENTAL-3'   -> 'Basura y residuos'
+const AGENDA_BLOQUE  = {};        // 'AMBIENTAL-3'   -> 'Ambiental'
 const CODIGOS_CATALOGO = [];
-const CODIGOS_OTRO = new Set();   // el campo abierto de cada bloque
-['ambiental','territorial'].forEach(ag => {
-  const etiqueta = ag === 'ambiental' ? 'Ambiental' : 'Territorial';
-  CATALOGO[ag].forEach(g => {
-    TITULO_BLOQUE[g.pre] = g.titulo;
-    AGENDA_BLOQUE[g.pre] = etiqueta;
-    g.op.forEach((t, i) => {
-      const cod = `${g.pre}.${i + 1}`;
-      TEXTO_PROBLEMA[cod] = t;
-      CODIGOS_CATALOGO.push(cod);
-    });
-    /* La última opción de cada bloque es el campo abierto. Se registra aparte
-       porque no es un problema del catálogo, sino un contenedor de texto libre. */
-    CODIGOS_OTRO.add(`${g.pre}.${g.op.length + 1}`);
-    TEXTO_PROBLEMA[`${g.pre}.${g.op.length + 1}`] = 'Otro (escrito por la persona)';
+const CODIGOS_OTRO = new Set();       // el campo abierto de cada bloque
+const CODIGOS_RETIRADOS = new Set();  // opciones que ya no se preguntan
+
+async function cargarCatalogo() {
+  let filas = [];
+  try {
+    filas = await leer('catalogo_problemas_pmduoet?select=*');
+  } catch (e) {
+    estado.avisos.push('No se pudo leer <b>catalogo_problemas_pmduoet</b>. Los problemas ' +
+      'aparecerán con su código en lugar de su texto. Ejecute <code>catalogo_problemas.sql</code> ' +
+      'y revise que la política RLS permita SELECT con la llave anónima.');
+    return;
+  }
+  if (!filas.length) {
+    estado.avisos.push('La tabla <b>catalogo_problemas_pmduoet</b> está vacía. ' +
+      'Ejecute <code>catalogo_problemas.sql</code> para llenarla.');
+    return;
+  }
+  filas.forEach(f => {
+    TEXTO_PROBLEMA[f.codigo] = f.texto;
+    TITULO_BLOQUE[f.bloque]  = f.titulo;
+    AGENDA_BLOQUE[f.bloque]  = f.agenda;
+    /* El campo abierto de cada bloque no es un problema del catálogo sino un
+       contenedor de texto libre; se marca para que no compita en los rankings. */
+    if (/^Otro\b/i.test(f.texto || '')) CODIGOS_OTRO.add(f.codigo);
+    else CODIGOS_CATALOGO.push(f.codigo);
+    /* Una opción retirada conserva su clave para que las respuestas anteriores
+       sigan siendo legibles; se distingue de las vigentes al interpretarlas. */
+    if (f.vigente === false) CODIGOS_RETIRADOS.add(f.codigo);
   });
-});
+}
 
 /* ---- Estado global ---- */
 const estado = {
@@ -947,6 +875,9 @@ function centro(geom, lat, lng) {
 /* ---- Carga completa ---- */
 async function cargarTodo() {
   estado.avisos = [];
+  cargando('Leyendo el catálogo de problemas…');
+  await cargarCatalogo();
+
   cargando('Leyendo participaciones…');
   const participaciones = await leer('participacion_pmduoet?select=*', 'id.asc');
 
@@ -1066,9 +997,12 @@ function armarFila(cod, m, g) {
      Si se etiqueta igual en los 18 bloques, las respuestas de temas distintos
      se suman y el campo abierto encabeza cualquier ranking, que es justo lo
      que no debe pasar. Se separa por tema y se marca para poder excluirlo. */
-  const esOtro = CODIGOS_OTRO.has(cod) || !TEXTO_PROBLEMA[cod];
+  /* Con el catálogo en la base, un código que no aparece ahí no es un campo
+     abierto sino un registro huérfano: conviene que se note, no disfrazarlo. */
+  const esOtro = CODIGOS_OTRO.has(cod);
   return {
     esOtro,
+    retirado: CODIGOS_RETIRADOS.has(cod),
     idHijo: g.idHijo,
     idMadre: m.id ?? null,
     folio: m.folio || null,
@@ -1077,7 +1011,7 @@ function armarFila(cod, m, g) {
     tituloBloque,
     agenda: AGENDA_BLOQUE[bloque] || (String(cod).startsWith('AMBIENTAL') ? 'Ambiental' : 'Territorial'),
     texto: esOtro ? `Otro, escrito por la persona · ${tituloBloque}`
-                  : (TEXTO_PROBLEMA[cod] || g.texto || cod),
+                  : (TEXTO_PROBLEMA[cod] || `Sin catálogo · ${cod}`),
     textoLibre: esOtro ? (g.texto || null) : null,
     orden: g.orden ? Number(g.orden) : null,
     peso: PESO_PRIORIDAD[g.orden] || 0,
@@ -1088,6 +1022,8 @@ function armarFila(cod, m, g) {
     sexo: m.sexo || 'Sin dato',
     lgbtiq: m.lgbtiq || 'Sin dato',
     lgbtiq_cual: m.lgbtiq_cual || null,
+    discapacidad: m.discapacidad || 'Sin dato',
+    discapacidad_tipo: m.discapacidad_tipo || null,
     edad: m.edad != null ? Number(m.edad) : null,
     nacimiento: m.lugar_nacimiento || 'Sin dato',
     residencia: m.anios_residencia != null ? Number(m.anios_residencia) : null,
@@ -1145,6 +1081,8 @@ const DIM = {
   residencia:     { et:'Años de residencia',   get:f => rangoResidencia(f.residencia), grupo:'Persona' },
   adscripcion:    { et:'Autoadscripción',      get:f => f.adscripcion,    grupo:'Persona' },
   lgbtiq:         { et:'Población LGBTIQ+',    get:f => f.lgbtiq,         grupo:'Persona' },
+  discapacidad:   { et:'Discapacidad',         get:f => f.discapacidad,   grupo:'Persona' },
+  discapacidad_tipo:{ et:'Tipo de discapacidad', get:f => f.discapacidad_tipo || 'Sin dato', grupo:'Persona' },
   trabajo:        { et:'Lugar de trabajo',     get:f => f.trabajo,        grupo:'Persona' },
   representacion: { et:'Carácter con que participa', get:f => f.representacion, grupo:'Persona' },
   alcance:        { et:'Alcance del trazo',    get:f => ({punto:'Punto',linea:'Línea',poligono:'Polígono'})[f.alcance] || f.alcance, grupo:'Levantamiento' },
@@ -2053,7 +1991,12 @@ function armarPaneles() {
       <div id="cruce-tabla"></div>
       <p class="nota">La lectura por fila responde “de quienes son X, ¿qué señalan?”.
          La lectura por columna responde “de quienes señalan Y, ¿quiénes son?”. Son
-         preguntas distintas y la matriz cambia de sentido según cuál elija.</p>
+         preguntas distintas y la matriz cambia de sentido según cuál elija.
+         <br><br><b>Cuidado con los grupos pequeños.</b> Discapacidad, identidad
+         LGBTIQ+ y autoadscripción son datos personales sensibles. Una celda con menos
+         de cinco personas no debe publicarse ni citarse: en una colonia chica basta
+         para identificar a alguien. Sirven para orientar el diagnóstico, no para
+         ilustrarlo.</p>
     </div>
     <div class="tarjeta ancha" style="margin-top:12px;">
       <h3>La misma matriz, en barras apiladas</h3>
@@ -2282,7 +2225,7 @@ function armarPaneles() {
   document.getElementById('sel-perfil-dim').onchange = pintarPerfil;
   document.getElementById('sel-top-metrica').onchange = pintarPanorama;
   document.getElementById('ficha-colonia').onchange = pintarFicha;
-  document.getElementById('btn-imprimir-ficha').onclick = () => window.print();
+  document.getElementById('btn-imprimir-ficha').onclick = imprimirFicha;
   document.querySelectorAll('[data-exp]').forEach(b => b.onclick = () => exportar(b.dataset.exp));
   document.getElementById('btn-otros-csv').onclick = () => exportar('otros');
 
@@ -2435,10 +2378,12 @@ function pintarPerfil() {
   pintar('g-piramide', {
     type:'bar',
     data:{ labels:gruposEdad, datasets:[
-      { label:'Mujeres', backgroundColor:'#f472b6', borderRadius:3,
-        data: gruposEdad.map(r => -cuenta('Mujer', r)) },
-      { label:'Hombres', backgroundColor:'#38bdf8', borderRadius:3,
-        data: gruposEdad.map(r => cuenta('Hombre', r)) },
+      /* Los valores pasaron a "Femenino" y "Masculino"; se suman también los
+         nombres anteriores por si quedara algún registro sin renombrar. */
+      { label:'Femenino', backgroundColor:'#f472b6', borderRadius:3,
+        data: gruposEdad.map(r => -(cuenta('Femenino', r) + cuenta('Mujer', r))) },
+      { label:'Masculino', backgroundColor:'#38bdf8', borderRadius:3,
+        data: gruposEdad.map(r => cuenta('Masculino', r) + cuenta('Hombre', r)) },
       { label:'Prefiere no decirlo o sin dato', backgroundColor:'#94a3b8', borderRadius:3,
         data: gruposEdad.map(r => cuenta('Prefiero no decirlo', r) + cuenta('Sin dato', r)) }] },
     options:{ indexAxis:'y',
@@ -2722,6 +2667,11 @@ function pintarFicha() {
   const nombre = document.getElementById('ficha-colonia').value;
   const cont = document.getElementById('ficha');
   if (!nombre) { cont.innerHTML = '<div class="vacio">Sin colonias con datos.</div>'; return; }
+
+  /* La ficha retrata a la colonia completa, no el recorte que haya en pantalla:
+     es un insumo del diagnóstico, no una vista del filtro. Cuando hay filtros
+     activos se advierte, porque los números de aquí no van a cuadrar con los
+     del resto del tablero y eso desconcierta. */
   const filas = estado.problemas.filter(f => f.colonia === nombre);
   const ids = new Set(filas.map(f => f.idMadre));
   const personas = estado.participaciones.filter(p => ids.has(p.id));
@@ -2731,19 +2681,61 @@ function pintarFicha() {
   const amb = filas.filter(f => f.agenda === 'Ambiental').length;
   const edades = personas.map(p => p.edad).filter(e => e != null && !isNaN(e));
   const edadMedia = edades.length ? (edades.reduce((a, b) => a + b, 0) / edades.length).toFixed(0) : '—';
+  const ipp = filas.reduce((a, f) => a + f.peso, 0);
+
+  /* Referencia municipal: una cifra suelta no dice nada sin con qué compararla.
+     El promedio se calcula sobre las colonias que sí tienen respuestas, no sobre
+     el padrón completo, para no dividir entre lugares donde nadie contestó. */
+  const porColonia = new Map();
+  estado.problemas.forEach(f => {
+    if (!porColonia.has(f.colonia)) porColonia.set(f.colonia, []);
+    porColonia.get(f.colonia).push(f);
+  });
+  const nCols = porColonia.size || 1;
+  const promProblemas = estado.problemas.length / nCols;
+  const promPersonas = new Set(estado.problemas.map(f => f.idMadre)).size / nCols;
+  const comparar = (v, prom) => {
+    if (!prom) return '';
+    const r = v / prom;
+    if (r >= 1.35) return `<span style="color:var(--acento)">↑ ${r.toFixed(1)}× el promedio</span>`;
+    if (r <= 0.65) return `<span style="color:var(--territorial)">↓ ${r.toFixed(1)}× el promedio</span>`;
+    return `<span style="color:var(--texto-tenue)">cerca del promedio</span>`;
+  };
+
+  const hayFiltros = CLAVES_DIM.some(k => filtros[k] && filtros[k].size) ||
+    rangos.soloPriorizados || rangos.sinOtros || rangos.folioId != null ||
+    rangos.edadMin != null || rangos.edadMax != null || rangos.fechaIni || rangos.fechaFin ||
+    areaSeleccion;
+
+  const tipo = filas[0] ? filas[0].asentamiento : 'Sin clasificar';
+  const pctMunicipio = estado.problemas.length
+    ? (filas.length / estado.problemas.length * 100).toFixed(1) : '0';
 
   cont.innerHTML = `
+    <div style="border-left:3px solid var(--acento);padding:2px 0 2px 11px;margin-bottom:12px;">
+      <div style="font-family:var(--display);font-size:21px;font-weight:700;letter-spacing:.4px;
+        line-height:1.15;">${esc(nombre)}</div>
+      <div style="font-size:11px;color:var(--texto-tenue);margin-top:2px;">
+        ${esc(tipo)} · ${num(filas.length)} de ${num(estado.problemas.length)} problemas
+        del municipio (${pctMunicipio}%)</div>
+    </div>
+    ${hayFiltros ? `<div class="aviso" style="margin-bottom:11px;">
+      Hay filtros activos en el tablero. <b>Esta ficha no los aplica:</b> retrata a
+      ${esc(nombre)} con todas sus respuestas, para que sirva como insumo del
+      diagnóstico. Por eso sus cifras no coinciden con las del resto de la pantalla.</div>` : ''}
     <div style="display:flex;flex-wrap:wrap;gap:9px;margin-bottom:11px;">
-      ${[['Cuestionarios', num(personas.length)], ['Problemas señalados', num(filas.length)],
-         ['Ambiental / Territorial', `${num(amb)} / ${num(filas.length - amb)}`],
-         ['Índice de prioridad', num(filas.reduce((a, f) => a + f.peso, 0))],
-         ['Edad promedio', edadMedia + (edadMedia !== '—' ? ' años' : '')],
-         ['Tipo', filas[0] ? filas[0].asentamiento : '—']]
-        .map(([k, v]) => `<div class="kpi"><div class="v">${v}</div><div class="k">${k}</div></div>`).join('')}
+      ${[['Cuestionarios', num(personas.length), comparar(personas.length, promPersonas)],
+         ['Problemas señalados', num(filas.length), comparar(filas.length, promProblemas)],
+         ['Ambiental / Territorial', `${num(amb)} / ${num(filas.length - amb)}`, ''],
+         ['Índice de prioridad', num(ipp), ''],
+         ['Problemas por persona', personas.length ? (filas.length / personas.length).toFixed(1) : '—', ''],
+         ['Edad promedio', edadMedia + (edadMedia !== '—' ? ' años' : ''), '']]
+        .map(([k, v, cmp]) => `<div class="kpi"><div class="v">${v}</div>
+          <div class="k">${k}</div>${cmp ? `<div style="font-size:9.5px;margin-top:1px;">${cmp}</div>` : ''}</div>`).join('')}
     </div>
     <div class="rejilla" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr));">
       <div>
-        <div class="mini-h">Lo que más se señala</div>
+        <div class="mini-h">Lo que más se señala en ${esc(cortar(nombre, 28))}</div>
         ${top.map((t, i) => `<div class="top-fila"><span class="pos">${i + 1}</span>
           <div class="cuerpo"><span class="et" title="${esc(t.clave)}">${esc(t.clave)}</span>
           <div class="barra-mini" style="width:${t.valor / top[0].valor * 100}%;
@@ -2756,11 +2748,49 @@ function pintarFicha() {
           <div class="cuerpo"><span class="et" title="${esc(t.clave)}">${esc(t.clave)}</span>
           <div class="barra-mini" style="width:${t.valor / prio[0].valor * 100}%"></div></div>
           <span class="n">${t.valor}</span></div>`).join('')
-          || '<div class="vacio">Nadie priorizó problemas en esta colonia.</div>'}
+          || '<div class="vacio">Nadie priorizó problemas aquí.</div>'}
         <div class="mini-h">Quién contestó</div>
         ${sexos.map(s => `<div class="dato-fila"><span>${esc(s.clave)}</span><b>${num(s.valor)}</b></div>`).join('')}
       </div>
-    </div>`;
+    </div>
+    <p class="nota">Ficha de <b>${esc(nombre)}</b>. El índice de prioridad suma 3, 2 y 1 punto
+    por cada problema que alguien colocó en primero, segundo y tercer lugar de gravedad.
+    La comparación con el promedio se calcula sobre las ${num(nCols)} colonias y comunidades
+    que tienen al menos una respuesta, no sobre el padrón completo.</p>`;
+}
+
+/* Imprime solo la ficha de la colonia elegida. Antes se llamaba a window.print()
+   sobre la pantalla completa y salía el contenido del centro —las listas del
+   municipio entero—, porque el riel donde vive la ficha estaba oculto al
+   imprimir. Ahora se arma una hoja con el contenido de la ficha y se imprime esa. */
+function imprimirFicha() {
+  const ficha = document.getElementById('ficha');
+  const nombre = document.getElementById('ficha-colonia').value;
+  if (!ficha || !ficha.innerHTML.trim() || !nombre) {
+    toast('Elija una colonia antes de imprimir'); return;
+  }
+  const caja = document.getElementById('hoja-impresion');
+  caja.innerHTML = `
+    <div class="hoja-cab">
+      <div>
+        <div class="hoja-t">Ficha de colonia</div>
+        <div class="hoja-s">Participación ciudadana · PMDUOET 2050 ·
+          IMPLAN San Francisco del Rincón</div>
+      </div>
+      <div class="hoja-f">${new Date().toLocaleDateString('es-MX',
+        { day:'2-digit', month:'long', year:'numeric' })}</div>
+    </div>
+    ${ficha.innerHTML}`;
+
+  document.body.classList.add('imprimir-ficha');
+  const limpiar = () => {
+    document.body.classList.remove('imprimir-ficha');
+    caja.innerHTML = '';
+  };
+  /* afterprint no llega en todos los navegadores; el temporizador es el respaldo
+     para que la hoja no se quede montada si el diálogo se cancela. */
+  window.addEventListener('afterprint', limpiar, { once:true });
+  setTimeout(() => { window.print(); setTimeout(limpiar, 1500); }, 80);
 }
 
 /* ---------- Levantamiento ---------- */
@@ -2834,6 +2864,10 @@ function pintarCalidad() {
   const sinColonia = P.filter(p => !p.colonia_oficial && !p.colonia_comunidad);
   const fueraPadron = F.filter(f => f.asentamiento === 'Sin clasificar');
   const residenciaRara = P.filter(p => p.anios_residencia != null && p.edad != null && p.anios_residencia > p.edad);
+  /* Respuestas a opciones que ya se retiraron del cuestionario: siguen siendo
+     válidas y legibles, pero no se comparan con las vigentes sin advertirlo. */
+  const retirados = F.filter(f => f.retirado);
+  const sinCatalogo = F.filter(f => !f.esOtro && /^Sin catálogo/.test(f.texto));
   const precisionMala = P.filter(p => p.precision_m != null && p.precision_m > 1500);
 
   const fila = (et, n, total, malo) => `<div class="dato-fila ${n > 0 ? (malo ? 'mal' : '') : 'bien'}">
@@ -2851,9 +2885,12 @@ function pintarCalidad() {
     ${fila('Edad fuera de 12 a 100 años', edadRara.length, P.length, true)}
     ${fila('Más años de residencia que de edad', residenciaRara.length, P.length, true)}
     ${fila('Ubicación con error mayor a 1.5 km', precisionMala.length, P.length, true)}
+    ${fila('Respuestas a opciones ya retiradas', retirados.length, F.length, false)}
+    ${fila('Códigos que no están en el catálogo', sinCatalogo.length, F.length, true)}
     <p class="nota">${degradados.length > 0
       ? 'Los registros degradados guardaron la priorización dentro de <code>otros</code> porque la tabla aún no tenía las columnas. El tablero ya los lee, pero conviene correr la migración SQL para normalizarlos.'
-      : 'Sin registros degradados: la migración SQL está aplicada y la priorización viaja en sus columnas.'}</p>`;
+      : 'Sin registros degradados: la migración SQL está aplicada y la priorización viaja en sus columnas.'}
+    ${retirados.length > 0 ? '<br><br>Hay respuestas a opciones que ya se retiraron del cuestionario. Conservan su texto original y se pueden leer, pero no se comparan con las vigentes: nadie pudo elegirlas después del cambio.' : ''}</p>`;
 
   const conP = P.filter(p => p.precision_m != null);
   const cubos = [['Menor a 30 m', p => p.precision_m < 30], ['30 a 150 m', p => p.precision_m >= 30 && p.precision_m < 150],
@@ -2880,6 +2917,8 @@ function pintarCalidad() {
     revisar.push(['Colonia fuera del padrón', c, 'No coincide con Colonias_SFR ni con Localidades']));
   precisionMala.slice(0, 40).forEach(p => revisar.push(['Ubicación imprecisa', p.folio || `id ${p.id}`,
     `±${Math.round(p.precision_m)} m`]));
+  [...new Set(sinCatalogo.map(f => f.codigo))].forEach(c => revisar.push(['Código sin catálogo', c,
+    'No aparece en catalogo_problemas_pmduoet. Vuelva a correr catalogo_problemas.sql']));
 
   document.getElementById('calidad-tabla').innerHTML = revisar.length === 0
     ? '<div class="vacio">Ningún registro requiere revisión.</div>'
@@ -2990,6 +3029,7 @@ const CAMPOS_CSV = [
   ['texto','Problema'], ['textoLibre','Texto escrito'], ['orden','Lugar de gravedad'],
   ['peso','Puntos de prioridad'], ['colonia','Colonia o comunidad'], ['asentamiento','Tipo de asentamiento'],
   ['sexo','Sexo'], ['edad','Edad'], ['lgbtiq','LGBTIQ+'], ['lgbtiq_cual','Identidad'],
+  ['discapacidad','Discapacidad'], ['discapacidad_tipo','Tipo de discapacidad'],
   ['nacimiento','Lugar de nacimiento'], ['residencia','Años de residencia'],
   ['escolaridad','Escolaridad'], ['ocupacion','Ocupación'], ['trabajo','Lugar de trabajo'],
   ['adscripcion','Autoadscripción'], ['representacion','Carácter'], ['distribuidor','Aplicador'],
@@ -3033,7 +3073,8 @@ async function exportar(que) {
   } else if (que === 'csv-personas') {
     const ids = new Set(filas.map(f => f.idMadre));
     const P = estado.participaciones.filter(p => ids.has(p.id));
-    const cols = ['folio','distribuidor','sexo','lgbtiq','lgbtiq_cual','edad','lugar_nacimiento',
+    const cols = ['folio','distribuidor','sexo','lgbtiq','lgbtiq_cual',
+      'discapacidad','discapacidad_tipo','edad','lugar_nacimiento',
       'anios_residencia','escolaridad','ocupacion','ocupacion_otro','lugar_trabajo','lugar_trabajo_otro',
       'autoadscripcion','representacion','representacion_otro','colonia_comunidad','colonia_oficial',
       'total_ambiental','total_territorial','lat','lng','precision_m'];
@@ -3273,6 +3314,8 @@ function htmlCuestionario(p) {
       ${dato('Años de residencia', p.anios_residencia != null ? p.anios_residencia : null)}
       ${dato('Autoadscripción', p.autoadscripcion)}
       ${dato('Población LGBTIQ+', p.lgbtiq === 'Sí' && p.lgbtiq_cual ? 'Sí · ' + p.lgbtiq_cual : p.lgbtiq)}
+      ${dato('Discapacidad', p.discapacidad === 'Sí' && p.discapacidad_tipo
+        ? 'Sí · ' + p.discapacidad_tipo : p.discapacidad)}
       ${dato('Carácter', p.representacion === 'Otro' && p.representacion_otro ? 'Otro: ' + p.representacion_otro : p.representacion)}
       ${dato('Ubicación de referencia', p.lat != null ? `${Number(p.lat).toFixed(5)}, ${Number(p.lng).toFixed(5)}` : 'No marcada')}
       ${dato('Precisión del GPS', p.precision_m != null ? `±${Math.round(p.precision_m)} m` : 'Marcada a mano')}
